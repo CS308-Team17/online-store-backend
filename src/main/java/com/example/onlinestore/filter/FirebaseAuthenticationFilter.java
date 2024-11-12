@@ -41,7 +41,7 @@ public class FirebaseAuthenticationFilter extends OncePerRequestFilter {
                 if (decodedToken != null) {
                     // If token is valid, proceed with the request
                     SecurityContextHolder.getContext().setAuthentication(
-                            new FirebaseAuthenticationToken(decodedToken, null)
+                            new FirebaseAuthenticationToken(decodedToken, "ROLE_ADMIN")
                     );
                 }
             } catch (FirebaseAuthException e) {

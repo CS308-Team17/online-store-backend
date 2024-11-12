@@ -1,20 +1,20 @@
 package com.example.onlinestore.entity;
 
-import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
 import java.util.List;
 
-@Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Category {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;  // Use a String ID compatible with Firebase document IDs
 
     private String name;
     private String description;
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
-    private List<Product> products;
-
-    // Getters and Setters
+    private List<Product> products;  // Store related products directly as a list
 }

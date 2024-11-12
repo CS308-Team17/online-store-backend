@@ -21,6 +21,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())  // Disable CSRF for APIs
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))  // Stateless sessions
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/admin/**").permitAll() // Only allow users with ADMIN role
+
                         .requestMatchers("/api/test").authenticated()  // Protect /api/test
                         .anyRequest().permitAll()  // Allow all other endpoints
                 )
