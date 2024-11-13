@@ -12,6 +12,7 @@ public class Product {
 
     private String productId;           // Ensure this field exists
     private String name;
+    private String imageURL;
     private String model;
     private String serialNumber;
     private String description;
