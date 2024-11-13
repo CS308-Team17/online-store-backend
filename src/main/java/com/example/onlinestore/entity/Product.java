@@ -1,15 +1,16 @@
 package com.example.onlinestore.entity;
 
-import jakarta.persistence.*;
-import java.util.List;
+import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
-@Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+
 public class Product {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+    private String productId;           // Ensure this field exists
     private String name;
     private String model;
     private String serialNumber;
@@ -19,9 +20,8 @@ public class Product {
     private String warrantyStatus;
     private String distributorInformation;
 
-    @ManyToOne
-    @JoinColumn(name = "category_id")
-    private Category category;
-
     // Getters and Setters
+
+
+// other fields, getters, and setters
 }

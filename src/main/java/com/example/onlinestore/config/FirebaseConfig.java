@@ -3,27 +3,27 @@ package com.example.onlinestore.config;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
-@Configuration
+@Service
 public class FirebaseConfig {
 
     @PostConstruct
     public void initialize() {
         try {
-            // Load the service account key JSON file
-            FileInputStream serviceAccount = new FileInputStream("src/main/resources/firebase-service-account.json");
+            // Update this path to point to your service account JSON file
+            InputStream serviceAccount = new FileInputStream("src/main/resources/firebase-service-account.json");
 
-            // Initialize Firebase with the service account credentials
-            FirebaseOptions options = new FirebaseOptions.Builder()
+            FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                    .setDatabaseUrl("https://cs308-onlinestore-default-rtdb.europe-west1.firebasedatabase.app/")
                     .build();
 
-            // Initialize the Firebase App
             if (FirebaseApp.getApps().isEmpty()) {
                 FirebaseApp.initializeApp(options);
             }
