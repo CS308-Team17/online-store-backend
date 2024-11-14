@@ -1,13 +1,20 @@
 package com.example.onlinestore.service;
 
 import com.example.onlinestore.entity.Product;
+import com.example.onlinestore.payload.ProductPayload;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
+import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.Bucket;
 import com.google.firebase.cloud.FirestoreClient;
+import com.google.firebase.cloud.StorageClient;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import com.google.cloud.storage.Acl;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,9 +25,31 @@ public class FirebaseProductService {
 
     private static final String COLLECTION_NAME = "products";
 
-    public String saveProduct(Product product) throws ExecutionException, InterruptedException {
+    private String uploadImageToStorage(MultipartFile imageFile) {
+        try {
+            Bucket bucket = StorageClient.getInstance().bucket();
+            Blob blob = bucket.create("images/" + imageFile.getOriginalFilename(), imageFile.getBytes(), imageFile.getContentType());
+            blob.createAcl(Acl.of(Acl.User.ofAllUsers(), Acl.Role.READER));
+            return blob.getMediaLink();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to upload image", e);
+        }
+    }
+
+    public String saveProduct(ProductPayload productRequest) throws ExecutionException, InterruptedException {
         Firestore dbFirestore = FirestoreClient.getFirestore();
         DocumentReference docRef;
+        Product product = new Product().setProduct(productRequest);
+
+        List<String> imageUrls = new ArrayList<>();
+        if (productRequest.getImages() != null) {
+            for (MultipartFile image : productRequest.getImages()) {
+                String imageUrl = uploadImageToStorage(image);
+                imageUrls.add(imageUrl);
+            }
+        }
+        product.setImageURL(imageUrls);
 
         // If product ID is null or empty, Firestore auto-generates an ID
         if (product.getProductId() == null || product.getProductId().trim().isEmpty()) {  // Check for null or empty String
