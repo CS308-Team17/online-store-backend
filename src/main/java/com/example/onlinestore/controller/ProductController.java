@@ -1,9 +1,11 @@
 package com.example.onlinestore.controller;
 
 import com.example.onlinestore.entity.Product;
+import com.example.onlinestore.request.ProductRequest;
 import com.example.onlinestore.service.FirebaseProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,9 +45,9 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<String> addProduct(@RequestBody Product product) {
+    public ResponseEntity<String> addProduct(@ModelAttribute ProductRequest request) {
         try {
-            String response = firebaseProductService.saveProduct(product);
+            String response = firebaseProductService.saveProduct(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         }  catch (Exception e) {
             e.printStackTrace();  // Print detailed stack trace in logs
@@ -54,10 +56,10 @@ public class ProductController {
     }
     // Add multiple
     @PostMapping("/addMultiple")
-    public ResponseEntity<String> addMultipleProducts(@RequestBody Product[] products) {
+    public ResponseEntity<String> addMultipleProducts(@ModelAttribute ProductRequest[] requests) {
         try {
-            for (Product product : products) {
-                firebaseProductService.saveProduct(product);
+            for (ProductRequest request : requests) {
+                firebaseProductService.saveProduct(request);
             }
             return ResponseEntity.status(HttpStatus.CREATED).body("Products added successfully");
         } catch (Exception e) {

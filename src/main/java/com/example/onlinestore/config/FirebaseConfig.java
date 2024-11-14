@@ -21,6 +21,7 @@ public class FirebaseConfig {
 
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                    .setStorageBucket("cs308-onlinestore.firebasestorage.app")
                     .setDatabaseUrl("https://cs308-onlinestore-default-rtdb.europe-west1.firebasedatabase.app/")
                     .build();
 
