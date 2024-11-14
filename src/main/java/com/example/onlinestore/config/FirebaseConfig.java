@@ -1,5 +1,6 @@
 package com.example.onlinestore.config;
 
+import com.example.onlinestore.constants.FirebaseConstants;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
@@ -17,12 +18,12 @@ public class FirebaseConfig {
     public void initialize() {
         try {
             // Update this path to point to your service account JSON file
-            InputStream serviceAccount = new FileInputStream("src/main/resources/firebase-service-account.json");
+            InputStream serviceAccount = new FileInputStream(FirebaseConstants.SERVICE_ACCOUNT_FILE_PATH);
 
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                    .setStorageBucket("cs308-onlinestore.firebasestorage.app")
-                    .setDatabaseUrl("https://cs308-onlinestore-default-rtdb.europe-west1.firebasedatabase.app/")
+                    .setStorageBucket(FirebaseConstants.STORAGE_BUCKET)
+                    .setDatabaseUrl(FirebaseConstants.DATABASE_URL)
                     .build();
 
             if (FirebaseApp.getApps().isEmpty()) {

@@ -1,4 +1,4 @@
-package com.example.onlinestore.request;
+package com.example.onlinestore.payload;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,7 +10,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductRequest {
+public class ProductPayload {
 
     private String name;
     private String model;

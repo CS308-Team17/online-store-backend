@@ -1,8 +1,6 @@
 package com.example.onlinestore.entity;
 
-import com.example.onlinestore.request.ProductRequest;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.firebase.database.annotations.NotNull;
+import com.example.onlinestore.payload.ProductPayload;
 import lombok.Data;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -26,7 +24,7 @@ public class Product {
     private String distributorInformation;
 
     // Gets a product request class and sets the values to the product entity
-    public Product setProduct(ProductRequest request) {
+    public Product setProduct(ProductPayload request) {
         this.name = request.getName();
         this.model = request.getModel();
         this.serialNumber = request.getSerialNumber();

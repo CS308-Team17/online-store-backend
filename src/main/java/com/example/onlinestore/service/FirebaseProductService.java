@@ -1,7 +1,7 @@
 package com.example.onlinestore.service;
 
 import com.example.onlinestore.entity.Product;
-import com.example.onlinestore.request.ProductRequest;
+import com.example.onlinestore.payload.ProductPayload;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.Firestore;
@@ -9,8 +9,6 @@ import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Bucket;
-import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageOptions;
 import com.google.firebase.cloud.FirestoreClient;
 import com.google.firebase.cloud.StorageClient;
 import org.springframework.stereotype.Service;
@@ -39,7 +37,7 @@ public class FirebaseProductService {
         }
     }
 
-    public String saveProduct(ProductRequest productRequest) throws ExecutionException, InterruptedException {
+    public String saveProduct(ProductPayload productRequest) throws ExecutionException, InterruptedException {
         Firestore dbFirestore = FirestoreClient.getFirestore();
         DocumentReference docRef;
         Product product = new Product().setProduct(productRequest);
