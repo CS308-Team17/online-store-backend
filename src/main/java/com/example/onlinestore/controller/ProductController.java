@@ -16,6 +16,32 @@ public class ProductController {
     @Autowired
     private FirebaseProductService firebaseProductService;
 
+    //Get all products
+    @GetMapping("getAll")
+    public ResponseEntity<Object> getAllProducts() {
+        try {
+            return ResponseEntity.ok(firebaseProductService.getAllProducts());
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching products");
+        }
+    }
+    //Get product by ID
+    @GetMapping("getById/{id}")
+    public ResponseEntity<Object> getProductById(@PathVariable String id) {
+        try {
+            Product product = firebaseProductService.getProductById(id);
+            if (product != null) {
+                return ResponseEntity.ok(product);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found");
+            }
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching product");
+        }
+    }
+
     @PostMapping
     public ResponseEntity<String> addProduct(@RequestBody Product product) {
         try {
@@ -26,7 +52,19 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error adding product: " + e.getMessage());
         }
     }
-
+    // Add multiple
+    @PostMapping("/addMultiple")
+    public ResponseEntity<String> addMultipleProducts(@RequestBody Product[] products) {
+        try {
+            for (Product product : products) {
+                firebaseProductService.saveProduct(product);
+            }
+            return ResponseEntity.status(HttpStatus.CREATED).body("Products added successfully");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error adding products: " + e.getMessage());
+        }
+    }
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteProduct(@PathVariable String id) {
         try {

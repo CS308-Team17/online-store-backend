@@ -10,8 +10,9 @@ import lombok.NoArgsConstructor;
 
 public class Product {
 
-    private String productId;           // Ensure this field exists
+    private String productId; // Ensure this field exists
     private String name;
+    private String imageURL; // Turn this into a list of URLs
     private String model;
     private String serialNumber;
     private String description;
@@ -19,9 +20,4 @@ public class Product {
     private double price;
     private String warrantyStatus;
     private String distributorInformation;
-
-    // Getters and Setters
-
-
-// other fields, getters, and setters
 }
