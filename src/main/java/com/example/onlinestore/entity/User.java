@@ -12,10 +12,11 @@ import lombok.NoArgsConstructor;
 public class User {
 
 
-    private String userId;
+    private String uid;
     private String name;
     private String email;
     private String address;
+    private String role;
 
 
 }
