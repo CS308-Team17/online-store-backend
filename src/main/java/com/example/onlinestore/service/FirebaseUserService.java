@@ -1,5 +1,7 @@
 package com.example.onlinestore.service;
 
+import com.example.onlinestore.constants.CollectionConstants;
+import com.example.onlinestore.constants.RoleConstants;
 import com.example.onlinestore.entity.User;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
@@ -16,10 +18,9 @@ import java.util.concurrent.ExecutionException;
 
 @Service
 public class FirebaseUserService {
-
-    private static final String COLLECTION_NAME = "users";
-
     // Role Management Section
+
+    private static final String COLLECTION_NAME = CollectionConstants.USERS_COLLECTION;
 
     /**
      * Assigns the 'ADMIN' role to a Firebase user by setting a custom claim.
@@ -29,7 +30,7 @@ public class FirebaseUserService {
      */
     public void setAdminRole(String uid) throws FirebaseAuthException {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("role", "ADMIN");
+        claims.put(RoleConstants.KEY, RoleConstants.ROLE_ADMIN);
         FirebaseAuth.getInstance().setCustomUserClaims(uid, claims);
         System.out.println("Admin role assigned to user with UID: " + uid);
     }
@@ -42,7 +43,7 @@ public class FirebaseUserService {
      */
     public void setCustomerRole(String uid) throws FirebaseAuthException {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("role", "CUSTOMER");
+        claims.put(RoleConstants.KEY, RoleConstants.ROLE_CUSTOMER);
         FirebaseAuth.getInstance().setCustomUserClaims(uid, claims);
         System.out.println("Customer role assigned to user with UID: " + uid);
     }
@@ -97,12 +98,12 @@ public class FirebaseUserService {
         Firestore dbFirestore = FirestoreClient.getFirestore();
 
         // Generate a new ID if the user ID is null or empty
-        if (user.getUserId() == null || user.getUserId().trim().isEmpty()) {
-            user.setUserId(dbFirestore.collection(COLLECTION_NAME).document().getId());
+        if (user.getUid() == null || user.getUid().trim().isEmpty()) {
+            user.setUid(dbFirestore.collection(COLLECTION_NAME).document().getId());
         }
 
-        dbFirestore.collection(COLLECTION_NAME).document(user.getUserId()).set(user).get();
-        return "User added successfully with ID: " + user.getUserId();
+        dbFirestore.collection(COLLECTION_NAME).document(user.getUid()).set(user).get();
+        return "User added successfully with ID: " + user.getUid();
     }
 
     /**

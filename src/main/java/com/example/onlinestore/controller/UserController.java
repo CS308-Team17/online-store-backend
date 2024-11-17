@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/user")
 public class UserController {
 
     @Autowired
