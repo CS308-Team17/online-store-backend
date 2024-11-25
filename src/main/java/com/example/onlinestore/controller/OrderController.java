@@ -17,7 +17,6 @@ public class OrderController {
 
     @PostMapping("/create")
     public String saveOrder(@RequestBody OrderDetails orderDetails) {
-        System.out.println("Order Details to Save: " + orderDetails);
         return firebaseOrderService.createOrder(orderDetails);
     }
 

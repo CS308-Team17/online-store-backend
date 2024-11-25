@@ -1,11 +1,15 @@
 package com.example.onlinestore.service;
 
+import com.example.onlinestore.Utils.TimeUtils;
 import com.example.onlinestore.entity.OrderDetails;
+import com.example.onlinestore.enums.OrderStatus;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -21,6 +25,11 @@ public class FirebaseOrderService {
                 String generatedOrderId = UUID.randomUUID().toString();
                 orderDetails.setOrderId(generatedOrderId);
             }
+
+            orderDetails.setOrderDate(TimeUtils.getCurrentDateTimeString());
+            orderDetails.setOrderStatus(OrderStatus.PROCESSING);
+
+            // Decrease the stock of the products in the order
 
             // Save the order using the specified or generated order ID
             DocumentReference docRef = db.collection("orders").document(orderDetails.getOrderId());
