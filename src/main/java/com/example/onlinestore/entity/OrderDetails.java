@@ -20,6 +20,7 @@ public class OrderDetails {
     private double orderTotal;
     private Address address;
     private Payment payment;
+    private Seller seller;
     private List<OrderProduct> products;
 }
 

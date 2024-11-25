@@ -3,6 +3,7 @@ package com.example.onlinestore.service;
 import com.example.onlinestore.Utils.TimeUtils;
 import com.example.onlinestore.entity.OrderDetails;
 import com.example.onlinestore.entity.OrderProduct;
+import com.example.onlinestore.entity.Seller;
 import com.example.onlinestore.enums.OrderStatus;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
@@ -30,7 +31,8 @@ public class FirebaseOrderService {
                 String generatedOrderId = UUID.randomUUID().toString();
                 orderDetails.setOrderId(generatedOrderId);
             }
-
+            Seller seller = new Seller();
+            orderDetails.setSeller(seller);
             orderDetails.setOrderDate(TimeUtils.getCurrentDateTimeString());
             orderDetails.setOrderStatus(OrderStatus.PROCESSING);
 

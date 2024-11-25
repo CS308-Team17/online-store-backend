@@ -15,5 +15,4 @@ public class Address {
     private String lastName;
     private String state;
     private String zip;
-
 }
