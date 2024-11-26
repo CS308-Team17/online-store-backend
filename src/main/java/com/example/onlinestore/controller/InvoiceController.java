@@ -5,6 +5,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import com.example.onlinestore.service.InvoiceService;
 
 @RestController
@@ -15,21 +17,16 @@ public class InvoiceController {
     private InvoiceService invoiceService;
 
     @GetMapping("/generate")
-    public String generateInvoice(@RequestParam String invoiceId) {
+    public ResponseEntity<String> generateInvoice(@RequestParam String invoiceId) {
         try {
             System.out.println("[INFO] Received request to generate invoice for ID: " + invoiceId);
             invoiceService.generateInvoice(invoiceId);
-            return "Invoice generation initiated successfully!";
+            return ResponseEntity.ok("Invoice generation initiated successfully!");
         } catch (Exception e) {
             System.err.println("[ERROR] Error while generating invoice: " + e.getMessage());
             e.printStackTrace();
-            return "Error while generating invoice: " + e.getMessage();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error while generating invoice: " + e.getMessage());
         }
-    }
-
-    @GetMapping("/test")
-    public String testEndpoint() {
-        System.out.println("[INFO] Test endpoint çalıştı.");
-        return "Invoice Controller is working!";
     }
 }
