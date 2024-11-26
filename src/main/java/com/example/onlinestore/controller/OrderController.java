@@ -16,8 +16,7 @@ public class OrderController {
     }
 
     @PostMapping("/create")
-    public String saveOrder(@RequestBody OrderDetails orderDetails) {
-        System.out.println("Order Details to Save: " + orderDetails);
+    public String createOrder(@RequestBody OrderDetails orderDetails) {
         return firebaseOrderService.createOrder(orderDetails);
     }
 
@@ -26,7 +25,7 @@ public class OrderController {
         return firebaseOrderService.getOrderById(orderId);
     }
 
-    @GetMapping("/user/{userId}")
+    @GetMapping("/getByUserId/{userId}")
     public List<OrderDetails> getOrdersByUserId(@PathVariable String userId) {
         return firebaseOrderService.getOrdersByUserId(userId);
     }

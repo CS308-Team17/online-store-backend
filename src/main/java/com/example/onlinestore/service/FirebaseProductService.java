@@ -73,6 +73,22 @@ public class FirebaseProductService {
         Firestore dbFirestore = FirestoreClient.getFirestore();
         return dbFirestore.collection(COLLECTION_NAME).document(id).get().get().toObject(Product.class);
     }
+    // Decrease quantity in stock by a given value
+    public String decreaseQuantityInStock(String id, int quantity) throws ExecutionException, InterruptedException {
+        Firestore dbFirestore = FirestoreClient.getFirestore();
+        Product product = dbFirestore.collection(COLLECTION_NAME).document(id).get().get().toObject(Product.class);
+        if (product != null) {
+            int newQuantity = product.getQuantityInStock() - quantity;
+            if (newQuantity >= 0) {
+                dbFirestore.collection(COLLECTION_NAME).document(id).update("quantityInStock", newQuantity).get();
+                return "Quantity in stock decreased successfully";
+            } else {
+                return "Not enough quantity in stock";
+            }
+        } else {
+            return "Product with id " + id + " not found";
+        }
+    }
 
     public List<Product> getAllProducts() throws ExecutionException, InterruptedException {
         Firestore dbFirestore = FirestoreClient.getFirestore();
