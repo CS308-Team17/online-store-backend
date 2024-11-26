@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -57,12 +58,7 @@ public class FirebaseOrderService {
             Firestore db = FirestoreClient.getFirestore();
             CollectionReference ordersCollection = db.collection("orders");
             Query query = ordersCollection.whereEqualTo("uid", userId);
-            ApiFuture<QuerySnapshot> querySnapshot = query.get();
-            List<OrderDetails> orders = new ArrayList<>();
-            for (DocumentSnapshot document : querySnapshot.get().getDocuments()) {
-                orders.add(document.toObject(OrderDetails.class));
-            }
-            return orders;
+            return getOrderDetails(query.get(), ordersCollection);
         } catch (Exception e) {
             throw new RuntimeException("Failed to retrieve orders: " + e.getMessage());
         }
@@ -81,6 +77,44 @@ public class FirebaseOrderService {
             }
         } catch (Exception e) {
             throw new RuntimeException("Failed to retrieve order: " + e.getMessage());
+        }
+    }
+
+    public List<OrderDetails> getAllOrders() {
+        try {
+            Firestore db = FirestoreClient.getFirestore();
+            CollectionReference ordersCollection = db.collection("orders");
+            return getOrderDetails(ordersCollection.get(), ordersCollection);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to retrieve orders: " + e.getMessage());
+        }
+    }
+
+    private List<OrderDetails> getOrderDetails(ApiFuture<QuerySnapshot> querySnapshotApiFuture, CollectionReference ordersCollection) throws InterruptedException, java.util.concurrent.ExecutionException {
+        List<OrderDetails> orders = new ArrayList<>();
+        for (DocumentSnapshot document : querySnapshotApiFuture.get().getDocuments()) {
+            orders.add(document.toObject(OrderDetails.class));
+        }
+        return orders;
+    }
+
+
+    public String updateOrderStatus(String orderId, OrderStatus orderStatus) {
+        try {
+            Firestore db = FirestoreClient.getFirestore();
+            DocumentReference orderRef = db.collection("orders").document(orderId);
+            ApiFuture<DocumentSnapshot> future = orderRef.get();
+            DocumentSnapshot document = future.get();
+            if (document.exists()) {
+                OrderDetails orderDetails = document.toObject(OrderDetails.class);
+                Objects.requireNonNull(orderDetails).setOrderStatus(orderStatus);
+                orderRef.set(orderDetails).get(); // Ensure synchronous write to Firestore
+                return "Order status updated successfully";
+            } else {
+                throw new RuntimeException("Order not found");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update order status: " + e.getMessage());
         }
     }
 }

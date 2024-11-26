@@ -1,5 +1,6 @@
 package com.example.onlinestore.controller;
 import com.example.onlinestore.entity.OrderDetails;
+import com.example.onlinestore.payload.OrderStatusPayload;
 import com.example.onlinestore.service.FirebaseOrderService;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,5 +31,14 @@ public class OrderController {
         return firebaseOrderService.getOrdersByUserId(userId);
     }
 
+    @GetMapping("/getAll")
+    public List<OrderDetails> getAllOrders() {
+        return firebaseOrderService.getAllOrders();
+    }
+
+    @PutMapping("/updateStatus")
+    public String updateOrderStatus(@RequestBody OrderStatusPayload orderStatusPayload) {
+        return firebaseOrderService.updateOrderStatus(orderStatusPayload.getOrderId(), orderStatusPayload.getOrderStatus());
+    }
 
 }
