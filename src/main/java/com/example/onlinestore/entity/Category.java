@@ -11,10 +11,12 @@ import java.util.List;
 @AllArgsConstructor
 public class Category {
 
-    private String id;  // Use a String ID compatible with Firebase document IDs
-
+    private String id;
     private String name;
     private String description;
 
-    private List<Product> products;  // Store related products directly as a list
+    public Category(String name, String description) {
+        this.name = name;
+        this.description = description;
+    }
 }

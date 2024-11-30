@@ -22,6 +22,7 @@ public class Product {
     private double price;
     private String warrantyStatus;
     private String distributorInformation;
+    private String categoryId;
 
     // Gets a product request class and sets the values to the product entity
     public Product setProduct(ProductPayload request) {
