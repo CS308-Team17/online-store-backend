@@ -13,7 +13,6 @@ import java.util.List;
 public class ProductPayload {
 
     private String name;
-    private String model;
     private String serialNumber;
     private String description;
     private int quantityInStock;
@@ -21,5 +20,15 @@ public class ProductPayload {
     private String warrantyStatus;
     private String distributorInformation;
     private List<MultipartFile> images;
+    private String categoryId;
+
+    // Book-specific fields
+    private String author;
+    private String publisher;
+    private String isbn;
+    private String language;
+    private int numberOfPages;
+    private String publicationDate;
+    private String edition;
 
 }
