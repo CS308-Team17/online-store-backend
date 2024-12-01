@@ -8,6 +8,7 @@ import com.example.onlinestore.enums.OrderStatus;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ public class FirebaseOrderService {
         this.invoiceService = invoiceService;
     }
 
-    public String createOrder(OrderDetails orderDetails) {
+    public ResponseEntity<String> createOrder(OrderDetails orderDetails) {
         try {
             Firestore db = FirestoreClient.getFirestore();
 
@@ -50,9 +51,9 @@ public class FirebaseOrderService {
 
             invoiceService.generateInvoiceFromOrder(orderDetails);
 
-            return "Order saved successfully with ID: " + orderDetails.getOrderId();
+            return ResponseEntity.ok(orderDetails.getOrderId());
         } catch (Exception e) {
-            throw new RuntimeException("Failed to save the order: " + e.getMessage());
+            throw new RuntimeException("Failed to create order: " + e.getMessage());
         }
     }
 
