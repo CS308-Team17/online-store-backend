@@ -2,6 +2,7 @@ package com.example.onlinestore.controller;
 import com.example.onlinestore.entity.OrderDetails;
 import com.example.onlinestore.payload.OrderStatusPayload;
 import com.example.onlinestore.service.FirebaseOrderService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,7 +18,7 @@ public class OrderController {
     }
 
     @PostMapping("/create")
-    public String createOrder(@RequestBody OrderDetails orderDetails) {
+    public ResponseEntity<String> createOrder(@RequestBody OrderDetails orderDetails) {
         return firebaseOrderService.createOrder(orderDetails);
     }
 
