@@ -62,7 +62,7 @@ public class FirebaseProductService {
         docRef.set(product).get();
         return "Product added successfully with ID: " + product.getProductId();
     }
-
+    
     public String deleteProductById(String id) throws ExecutionException, InterruptedException {
         Firestore dbFirestore = FirestoreClient.getFirestore();
         dbFirestore.collection(COLLECTION_NAME).document(id).delete().get();

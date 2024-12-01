@@ -20,6 +20,7 @@ public class Product {
     private double price;
     private int quantityInStock;
     private String categoryId;
+    private int numOfWishlists;
 
     // Distributor and model-related information
     private String serialNumber;
@@ -43,6 +44,7 @@ public class Product {
         this.quantityInStock = request.getQuantityInStock();
         this.price = request.getPrice();
         this.categoryId = request.getCategoryId();
+        this.numOfWishlists = 0;
 
         // Distributor and model-related information
         this.serialNumber = request.getSerialNumber();
