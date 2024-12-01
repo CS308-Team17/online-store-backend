@@ -32,20 +32,6 @@ public class InvoiceController {
         }
     }
 
-    /**
-     * Generate a new invoice based on order data.
-     */
-    @PostMapping("/generate-from-order")
-    public ResponseEntity<String> generateInvoiceFromOrder(@RequestParam String orderId) {
-        try {
-            invoiceService.generateInvoiceFromOrder(orderId);
-            return ResponseEntity.ok("Invoice successfully generated from order.");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error generating invoice from order: " + e.getMessage());
-        }
-    }
-
 
 /*
     @GetMapping("/{invoiceId}")

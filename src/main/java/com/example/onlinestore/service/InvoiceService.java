@@ -1,6 +1,7 @@
 package com.example.onlinestore.service;
 
 import com.example.onlinestore.constants.CollectionConstants;
+import com.example.onlinestore.entity.OrderDetails;
 import com.example.onlinestore.entity.User;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
@@ -56,9 +57,9 @@ public class InvoiceService {
         }
     }
 
-    public void generateInvoiceFromOrder(String orderId) {
+    public void generateInvoiceFromOrder(OrderDetails orderDetails) {
         try {
-            Map<String, Object> orderData = fetchOrderData(orderId);
+            Map<String, Object> orderData = fetchOrderData(orderDetails.getOrderId());
             String invoiceId = saveOrderAsInvoice(orderData);
 
             generateInvoice(invoiceId); // Use the existing logic to create the PDF and send it
