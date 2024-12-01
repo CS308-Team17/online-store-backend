@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ReviewPayload {
     private String productId;
+    private String name; // name of user
     private String uid;
     private String comment;
     private int rating;

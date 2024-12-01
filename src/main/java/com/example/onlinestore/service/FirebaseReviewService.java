@@ -92,4 +92,13 @@ public class FirebaseReviewService {
         Firestore dbFirestore = FirestoreClient.getFirestore();
         return dbFirestore.collection(COLLECTION_NAME).document(reviewId).get().get().toObject(Review.class);
     }
+
+    public void makeProductNullInReviews(String id) throws ExecutionException, InterruptedException {
+        Firestore dbFirestore = FirestoreClient.getFirestore();
+        CollectionReference reviews = dbFirestore.collection(COLLECTION_NAME);
+        reviews.whereEqualTo("productId", id).get().get().toObjects(Review.class).forEach(review -> {
+            review.setProductId(null);
+            reviews.document(review.getReviewId()).set(review);
+        });
+    }
 }
