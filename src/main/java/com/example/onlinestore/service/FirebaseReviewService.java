@@ -6,6 +6,7 @@ import com.example.onlinestore.payload.ReviewPayload;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.cloud.FirestoreClient;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,7 +19,8 @@ public class FirebaseReviewService {
     private final FirebaseUserService firebaseUserService;
     private final FirebaseProductService firebaseProductService;
 
-    public FirebaseReviewService(FirebaseUserService firebaseUserService, FirebaseProductService firebaseProductService) {
+    // todo find a better way to solve circular dependency than using @Lazy
+    public FirebaseReviewService(FirebaseUserService firebaseUserService, @Lazy FirebaseProductService firebaseProductService) {
         this.firebaseUserService = firebaseUserService;
         this.firebaseProductService = firebaseProductService;
     }
