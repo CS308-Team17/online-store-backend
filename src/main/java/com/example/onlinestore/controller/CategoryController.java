@@ -1,12 +1,14 @@
 package com.example.onlinestore.controller;
 
 import com.example.onlinestore.entity.Category;
+import com.example.onlinestore.payload.CategoryPayload;
 import com.example.onlinestore.service.FirebaseCategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @RestController
@@ -22,13 +24,26 @@ public class CategoryController {
 
     // Endpoint to save a new category
     @PostMapping
-    public ResponseEntity<String> addCategory(@RequestBody Category category) {
+    public ResponseEntity<String> addCategory(@RequestBody CategoryPayload payload) {
         try {
+            Category category = new Category(payload.getName(), payload.getDescription());
             String response = firebaseCategoryService.saveCategory(category);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error adding category");
+        }
+    }
+
+    // Endpoint to get all categories
+    @GetMapping("/getAll")
+    public ResponseEntity<List<Category>> getAllCategories() {
+        try {
+            List<Category> categories = firebaseCategoryService.getAll();
+            return ResponseEntity.ok(categories);
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
