@@ -8,7 +8,6 @@ import lombok.AllArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Wishlist {
-
     private String id;
     private String userId;
     private String productId;

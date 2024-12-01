@@ -100,4 +100,14 @@ public class FirebaseProductService {
         }
         return products;
     }
+
+    public void incrementWishlistCount(String productId) {
+        Firestore dbFirestore = FirestoreClient.getFirestore();
+        dbFirestore.collection(COLLECTION_NAME).document(productId).update("numOfWishlists", com.google.cloud.firestore.FieldValue.increment(1));
+    }
+
+    public void decrementWishlistCount(String productId) {
+        Firestore dbFirestore = FirestoreClient.getFirestore();
+        dbFirestore.collection(COLLECTION_NAME).document(productId).update("numOfWishlists", com.google.cloud.firestore.FieldValue.increment(-1));
+    }
 }
