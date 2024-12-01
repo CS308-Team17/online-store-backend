@@ -1,6 +1,7 @@
 package com.example.onlinestore.service;
 
 import com.example.onlinestore.constants.CollectionConstants;
+import com.example.onlinestore.constants.FirebaseConstants;
 import com.example.onlinestore.entity.OrderDetails;
 import com.example.onlinestore.entity.User;
 import com.google.cloud.firestore.*;
@@ -161,7 +162,7 @@ public class InvoiceService {
         contentStream.setFont(PDType1Font.HELVETICA, 10);
         contentStream.beginText();
         contentStream.newLineAtOffset(50, 720);
-        contentStream.showText("SWAY");
+        contentStream.showText("KitApp");
         contentStream.newLineAtOffset(0, -15);
         contentStream.showText("123 Business Rd.");
         contentStream.newLineAtOffset(0, -15);
