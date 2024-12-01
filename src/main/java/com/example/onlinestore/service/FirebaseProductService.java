@@ -24,6 +24,12 @@ import java.util.concurrent.ExecutionException;
 public class FirebaseProductService {
 
     private static final String COLLECTION_NAME = "products";
+    private final FirebaseReviewService firebaseReviewService;
+
+    public FirebaseProductService(FirebaseReviewService firebaseReviewService) {
+        this.firebaseReviewService = firebaseReviewService;
+    }
+
 
     private String uploadImageToStorage(MultipartFile imageFile) {
         try {
@@ -66,6 +72,9 @@ public class FirebaseProductService {
     public String deleteProductById(String id) throws ExecutionException, InterruptedException {
         Firestore dbFirestore = FirestoreClient.getFirestore();
         dbFirestore.collection(COLLECTION_NAME).document(id).delete().get();
+        // Products in the reviews will become null
+        firebaseReviewService.makeProductNullInReviews(id);
+
         return "Product deleted successfully";
     }
 
