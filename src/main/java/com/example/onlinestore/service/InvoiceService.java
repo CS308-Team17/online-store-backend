@@ -1,5 +1,6 @@
 package com.example.onlinestore.service;
 
+import com.example.onlinestore.constants.CollectionConstants;
 import com.example.onlinestore.entity.User;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
@@ -22,6 +23,7 @@ import java.util.Optional;
 @Service
 public class InvoiceService {
 
+
     private final String INVOICE_SAVE_PATH = "src/main/resources/invoices/";
     private final String LOGO_PATH = "src/main/resources/logo.jpeg";
 
@@ -32,46 +34,75 @@ public class InvoiceService {
     private FirebaseUserService firebaseUserService;
 
     public void generateInvoice(String invoiceId) {
-        System.out.println("[INFO] Starting invoice generation for invoice ID: " + invoiceId);
-
         try {
             Map<String, Object> invoiceData = fetchInvoiceData(invoiceId);
 
             if (isValidInvoiceData(invoiceData)) {
-                System.out.println("[INFO] Invoice data is valid.");
-
                 Optional<User> userOptional = fetchCustomerData(invoiceData);
 
                 if (userOptional.isPresent()) {
                     User user = userOptional.get();
-                    String email = user.getEmail();
-
                     String filePath = createPdfInvoice(invoiceId, invoiceData);
-                    sendInvoiceEmail(email, filePath);
+                    sendInvoiceEmail(user.getEmail(), filePath);
                 } else {
-                    System.err.println("[ERROR] Customer not found for invoice data.");
+                    throw new Exception("Customer not found for invoice ID: " + invoiceId);
                 }
             } else {
-                System.err.println("[ERROR] Invalid invoice data for ID: " + invoiceId);
+                throw new Exception("Invalid invoice data for invoice ID: " + invoiceId);
             }
         } catch (Exception e) {
-            System.err.println("[ERROR] Error during invoice generation: " + e.getMessage());
             e.printStackTrace();
+            throw new RuntimeException("Error generating invoice: " + e.getMessage());
+        }
+    }
+
+    public void generateInvoiceFromOrder(String orderId) {
+        try {
+            Map<String, Object> orderData = fetchOrderData(orderId);
+            String invoiceId = saveOrderAsInvoice(orderData);
+
+            generateInvoice(invoiceId); // Use the existing logic to create the PDF and send it
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error generating invoice from order: " + e.getMessage());
         }
     }
 
     private Map<String, Object> fetchInvoiceData(String invoiceId) throws Exception {
         Firestore firestore = FirestoreClient.getFirestore();
-        ApiFuture<QuerySnapshot> query = firestore.collection("invoices")
+        QuerySnapshot querySnapshot = firestore.collection(CollectionConstants.INVOICES_COLLECTION)
                 .whereEqualTo("invoiceId", invoiceId)
-                .get();
+                .get().get();
 
-        QuerySnapshot querySnapshot = query.get();
         if (!querySnapshot.isEmpty()) {
             return querySnapshot.getDocuments().get(0).getData();
         } else {
             throw new Exception("No invoice found for ID: " + invoiceId);
         }
+    }
+
+    private Map<String, Object> fetchOrderData(String orderId) throws Exception {
+        Firestore firestore = FirestoreClient.getFirestore();
+        QuerySnapshot querySnapshot = firestore.collection(CollectionConstants.ORDER_COLLECTION)
+                .whereEqualTo("orderId", orderId)
+                .get().get();
+
+        if (!querySnapshot.isEmpty()) {
+            return querySnapshot.getDocuments().get(0).getData();
+        } else {
+            throw new Exception("No order found for ID: " + orderId);
+        }
+    }
+
+    private String saveOrderAsInvoice(Map<String, Object> orderData) throws Exception {
+        Firestore firestore = FirestoreClient.getFirestore();
+        DocumentReference documentReference = firestore.collection(CollectionConstants.INVOICES_COLLECTION).document();
+        String invoiceId = documentReference.getId();
+
+        orderData.put("invoiceId", invoiceId);
+        documentReference.set(orderData).get();
+
+        return invoiceId;
     }
 
     private Optional<User> fetchCustomerData(Map<String, Object> invoiceData) throws Exception {
