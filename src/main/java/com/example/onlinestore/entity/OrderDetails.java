@@ -22,6 +22,9 @@ public class OrderDetails {
     private Payment payment;
     private Seller seller;
     private List<OrderProduct> products;
+
+
+
 }
 
 

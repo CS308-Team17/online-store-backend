@@ -3,6 +3,7 @@ package com.example.onlinestore.service;
 import com.example.onlinestore.constants.CollectionConstants;
 import com.example.onlinestore.constants.RoleConstants;
 import com.example.onlinestore.entity.User;
+import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.auth.FirebaseAuth;
@@ -135,5 +136,20 @@ public class FirebaseUserService {
         Firestore dbFirestore = FirestoreClient.getFirestore();
         dbFirestore.collection(COLLECTION_NAME).document(id).delete().get();
         return "User deleted successfully";
+    }
+    public String getUserEmailById(String userId) {
+        try {
+            Firestore db = FirestoreClient.getFirestore();
+            DocumentReference userRef = db.collection("users").document(userId);
+            DocumentSnapshot document = userRef.get().get();
+
+            if (document.exists()) {
+                return document.getString("email"); // Assuming "email" field is in user document
+            } else {
+                throw new RuntimeException("User not found for ID: " + userId);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to fetch user email: " + e.getMessage());
+        }
     }
 }

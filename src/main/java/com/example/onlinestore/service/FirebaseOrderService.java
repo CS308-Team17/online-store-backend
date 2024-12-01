@@ -8,6 +8,7 @@ import com.example.onlinestore.enums.OrderStatus;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -18,6 +19,12 @@ import java.util.UUID;
 @Service
 public class FirebaseOrderService {
     private final FirebaseProductService firebaseProductService;
+
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private FirebaseUserService firebaseUserService;
 
     public FirebaseOrderService(FirebaseProductService firebaseProductService) {
         this.firebaseProductService = firebaseProductService;
@@ -105,13 +112,21 @@ public class FirebaseOrderService {
             DocumentReference orderRef = db.collection("orders").document(orderId);
             ApiFuture<DocumentSnapshot> future = orderRef.get();
             DocumentSnapshot document = future.get();
+
             if (document.exists()) {
                 OrderDetails orderDetails = document.toObject(OrderDetails.class);
                 Objects.requireNonNull(orderDetails).setOrderStatus(orderStatus);
-                orderRef.set(orderDetails).get(); // Ensure synchronous write to Firestore
-                return "Order status updated successfully";
+                orderRef.set(orderDetails).get(); // Save the updated order
+
+                // Send notification to the user
+                String userId = orderDetails.getUid(); // Assuming `uid` is user's ID in OrderDetails
+                String message = "Your order " + orderId + " is now " + orderStatus.name();
+                notificationService.createNotification(userId, "Order Update", message, orderId);
+
+                return "Order status updated successfully.";
+
             } else {
-                throw new RuntimeException("Order not found");
+                throw new RuntimeException("Order not found.");
             }
         } catch (Exception e) {
             throw new RuntimeException("Failed to update order status: " + e.getMessage());
