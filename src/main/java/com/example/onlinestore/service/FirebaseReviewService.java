@@ -26,8 +26,8 @@ public class FirebaseReviewService {
     public String saveReview(ReviewPayload reviewPayload) throws ExecutionException, InterruptedException {
         Firestore dbFirestore = FirestoreClient.getFirestore();
         // Check if the review rating is in the valid range
-        if (reviewPayload.getRating() < 1 || reviewPayload.getRating() > 10) {
-            return "Review score must be between 1 and 10";
+        if (reviewPayload.getRating() < 1 || reviewPayload.getRating() > 5) {
+            return "Review score must be between 1 and 5";
         }
 
         //Check if the user exists
