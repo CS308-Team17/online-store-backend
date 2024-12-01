@@ -15,6 +15,9 @@ yarn-error.log*
 /.pnp
 .pnp.js
 
+# resources/invoices
+src/main/resources/invoices/
+
 # Firebase
 .firebase/
 firebase-debug.log

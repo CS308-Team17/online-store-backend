@@ -3,14 +3,12 @@ package com.example.onlinestore.service;
 import com.example.onlinestore.constants.CollectionConstants;
 import com.example.onlinestore.entity.OrderDetails;
 import com.example.onlinestore.entity.User;
-import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
 import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.awt.Color;
@@ -20,49 +18,44 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 @Service
 public class InvoiceService {
 
 
     private final String INVOICE_SAVE_PATH = "src/main/resources/invoices/";
-    private final String LOGO_PATH = "src/main/resources/logo.jpeg";
+    private final String LOGO_PATH = "src/main/resources/logo.png";
 
-    @Autowired
-    private EmailService emailService;
+    private final EmailService emailService;
 
-    @Autowired
-    private FirebaseUserService firebaseUserService;
+    private final FirebaseUserService firebaseUserService;
 
-    public void generateInvoice(String invoiceId) {
+    public InvoiceService(EmailService emailService, FirebaseUserService firebaseUserService) {
+        this.emailService = emailService;
+        this.firebaseUserService = firebaseUserService;
+    }
+
+    public void generateInvoicePDF(OrderDetails orderDetails) {
         try {
-            Map<String, Object> invoiceData = fetchInvoiceData(invoiceId);
-
-            if (isValidInvoiceData(invoiceData)) {
-                Optional<User> userOptional = fetchCustomerData(invoiceData);
-
-                if (userOptional.isPresent()) {
-                    User user = userOptional.get();
-                    String filePath = createPdfInvoice(invoiceId, invoiceData);
-                    sendInvoiceEmail(user.getEmail(), filePath);
-                } else {
-                    throw new Exception("Customer not found for invoice ID: " + invoiceId);
-                }
-            } else {
-                throw new Exception("Invalid invoice data for invoice ID: " + invoiceId);
+            Optional<User> user = firebaseUserService.getUserById(orderDetails.getUid());
+            if (user.isEmpty()) {
+                throw new RuntimeException("User not found for ID: " + orderDetails.getUid());
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error generating invoice: " + e.getMessage());
+            String filePath = createPdfInvoice(orderDetails);
+            sendInvoiceEmail(user.get().getEmail(), filePath);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
     public void generateInvoiceFromOrder(OrderDetails orderDetails) {
         try {
-            Map<String, Object> orderData = fetchOrderData(orderDetails.getOrderId());
-            String invoiceId = saveOrderAsInvoice(orderData);
-
-            generateInvoice(invoiceId); // Use the existing logic to create the PDF and send it
+            generateInvoicePDF(orderDetails); // Use the existing logic to create the PDF and send it
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Error generating invoice from order: " + e.getMessage());
@@ -94,32 +87,20 @@ public class InvoiceService {
             throw new Exception("No order found for ID: " + orderId);
         }
     }
-
-    private String saveOrderAsInvoice(Map<String, Object> orderData) throws Exception {
-        Firestore firestore = FirestoreClient.getFirestore();
-        DocumentReference documentReference = firestore.collection(CollectionConstants.INVOICES_COLLECTION).document();
-        String invoiceId = documentReference.getId();
-
-        orderData.put("invoiceId", invoiceId);
-        documentReference.set(orderData).get();
-
-        return invoiceId;
-    }
-
     private Optional<User> fetchCustomerData(Map<String, Object> invoiceData) throws Exception {
         String customerId = (String) invoiceData.get("customerId");
         return firebaseUserService.getUserById(customerId);
     }
 
-    private String createPdfInvoice(String invoiceId, Map<String, Object> invoiceData) throws IOException {
-        System.out.println("[DEBUG] Starting PDF generation for Invoice ID: " + invoiceId);
+    private String createPdfInvoice(OrderDetails orderDetails) throws IOException {
+        System.out.println("[DEBUG] Starting PDF generation for Invoice ID: " + orderDetails.getOrderId());
 
         File directory = new File(INVOICE_SAVE_PATH);
         if (!directory.exists() && !directory.mkdirs()) {
             throw new IOException("Failed to create directory: " + INVOICE_SAVE_PATH);
         }
 
-        String filePath = INVOICE_SAVE_PATH + "Invoice_" + invoiceId + ".pdf";
+        String filePath = INVOICE_SAVE_PATH + "Invoice_" + orderDetails.getOrderId() + ".pdf";
         System.out.println("[DEBUG] PDF will be saved to: " + filePath);
 
         LocalDate today = LocalDate.now();
@@ -133,10 +114,10 @@ public class InvoiceService {
             PDPageContentStream contentStream = new PDPageContentStream(document, page);
 
             addLogoToPdf(contentStream, document);
-            addInvoiceHeader(contentStream, invoiceId, today.format(formatter), dueDate.format(formatter));
+            addInvoiceHeader(contentStream, orderDetails.getOrderId(), today.format(formatter), dueDate.format(formatter));
             addCompanyInfo(contentStream);
-            addBillingInfo(contentStream, invoiceData);
-            addTotalAmount(contentStream, invoiceData);
+            addBillingInfo(contentStream, orderDetails);
+            addTotalAmount(contentStream, orderDetails);
 
             contentStream.close();
             document.save(filePath);
@@ -190,7 +171,7 @@ public class InvoiceService {
         contentStream.endText();
     }
 
-    private void addBillingInfo(PDPageContentStream contentStream, Map<String, Object> invoiceData) throws IOException {
+    private void addBillingInfo(PDPageContentStream contentStream, OrderDetails orderDetails) throws IOException {
         contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
         contentStream.beginText();
         contentStream.newLineAtOffset(50, 600);
@@ -200,20 +181,20 @@ public class InvoiceService {
         contentStream.setFont(PDType1Font.HELVETICA, 10);
         contentStream.beginText();
         contentStream.newLineAtOffset(50, 580);
-        contentStream.showText("Customer ID: " + invoiceData.get("customerId"));
+        contentStream.showText("Customer ID: " + orderDetails.getUid());
         contentStream.newLineAtOffset(0, -15);
-        contentStream.showText("Order ID: " + invoiceData.get("orderId"));
+        contentStream.showText("Order ID: " + orderDetails.getOrderId());
         contentStream.newLineAtOffset(0, -15);
-        contentStream.showText("Purchase Date: " + invoiceData.get("purchaseDate"));
+        contentStream.showText("Purchase Date: " +orderDetails.getOrderDate());
         contentStream.endText();
     }
 
-    private void addTotalAmount(PDPageContentStream contentStream, Map<String, Object> invoiceData) throws IOException {
+    private void addTotalAmount(PDPageContentStream contentStream, OrderDetails orderDetails) throws IOException {
         contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
         contentStream.setNonStrokingColor(Color.RED);
         contentStream.beginText();
         contentStream.newLineAtOffset(50, 500);
-        contentStream.showText("TOTAL: $" + String.format("%.2f", invoiceData.get("totalAmount")));
+        contentStream.showText("TOTAL: $" + String.format("%.2f", orderDetails.getOrderTotal()));
         contentStream.endText();
 
         contentStream.setNonStrokingColor(Color.BLACK);
@@ -226,12 +207,5 @@ public class InvoiceService {
                 "Dear Customer, please find your invoice attached.",
                 filePath
         );
-    }
-
-    private boolean isValidInvoiceData(Map<String, Object> invoiceData) {
-        return invoiceData.containsKey("customerId") && invoiceData.get("customerId") instanceof String &&
-                invoiceData.containsKey("orderId") && invoiceData.get("orderId") instanceof String &&
-                invoiceData.containsKey("purchaseDate") && invoiceData.get("purchaseDate") instanceof String &&
-                invoiceData.containsKey("totalAmount") && invoiceData.get("totalAmount") instanceof Double;
     }
 }

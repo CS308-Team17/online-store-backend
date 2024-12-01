@@ -13,8 +13,8 @@ public class Seller {
 
     // todo discuss in future do we need different sellers?
     public Seller() {
-        this.sellerId = "Sway";
-        this.sellerName = "Sway";
+        this.sellerId = "KitApp";
+        this.sellerName = "KitApp";
         this.sellerAddress = "Orta Mahalle, Üniversite Caddesi No:27 Tuzla, 34956 İstanbul";
         this.sellerPhone = "+905425357799";
     }
