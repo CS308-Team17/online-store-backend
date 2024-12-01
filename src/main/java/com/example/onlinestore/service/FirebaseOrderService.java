@@ -18,9 +18,11 @@ import java.util.UUID;
 @Service
 public class FirebaseOrderService {
     private final FirebaseProductService firebaseProductService;
+    private final InvoiceService invoiceService;
 
-    public FirebaseOrderService(FirebaseProductService firebaseProductService) {
+    public FirebaseOrderService(FirebaseProductService firebaseProductService, InvoiceService invoiceService) {
         this.firebaseProductService = firebaseProductService;
+        this.invoiceService = invoiceService;
     }
 
     public String createOrder(OrderDetails orderDetails) {
@@ -45,6 +47,8 @@ public class FirebaseOrderService {
             // Save the order using the specified or generated order ID
             DocumentReference docRef = db.collection("orders").document(orderDetails.getOrderId());
             docRef.set(orderDetails).get(); // Ensure synchronous write to Firestore
+
+            invoiceService.generateInvoiceFromOrder(orderDetails);
 
             return "Order saved successfully with ID: " + orderDetails.getOrderId();
         } catch (Exception e) {
