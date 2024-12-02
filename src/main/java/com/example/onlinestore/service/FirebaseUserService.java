@@ -103,7 +103,7 @@ public class FirebaseUserService {
         }
 
         dbFirestore.collection(COLLECTION_NAME).document(user.getUid()).set(user).get();
-        return "User added successfully with ID: " + user.getUid();
+        return user.getUid();
     }
 
     /**
