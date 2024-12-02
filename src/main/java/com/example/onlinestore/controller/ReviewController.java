@@ -88,6 +88,16 @@ public class ReviewController {
         }
     }
 
+    @GetMapping("/getAllPending")
+    public ResponseEntity<Object> getPendingReviews() {
+        try {
+            return ResponseEntity.ok(firebaseReviewService.getReviewsByStatus(ReviewStatus.PENDING));
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching products" + e.getMessage());
+        }
+    }
+
     // Get reviews by product ID
     @GetMapping("/getByProductId/{productId}")
     public ResponseEntity<Object> getReviewsByProductId(@PathVariable String productId) {

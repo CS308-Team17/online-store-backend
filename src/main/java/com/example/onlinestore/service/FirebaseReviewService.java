@@ -87,7 +87,7 @@ public class FirebaseReviewService {
     public List<Review> getReviewsByStatus(ReviewStatus status) throws ExecutionException, InterruptedException{
         Firestore dbFirestore = FirestoreClient.getFirestore();
         CollectionReference reviews = dbFirestore.collection(COLLECTION_NAME);
-        return reviews.whereEqualTo("status", status).get().get().toObjects(Review.class);
+        return reviews.whereEqualTo("reviewStatus", status).get().get().toObjects(Review.class);
     }
 
     public Review getReviewById(String reviewId) throws ExecutionException, InterruptedException {
