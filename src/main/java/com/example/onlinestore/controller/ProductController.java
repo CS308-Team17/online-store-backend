@@ -27,6 +27,28 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching products");
         }
     }
+
+    @GetMapping("getMostWishlisted")
+    public ResponseEntity<Object> getMostWishlistedProducts() {
+        try {
+            return ResponseEntity.ok(firebaseProductService.getMostWishlistedProducts());
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching products");
+        }
+    }
+
+    @GetMapping("getNewArrivals")
+    public ResponseEntity<Object> getNewArrivals() {
+        try {
+            return ResponseEntity.ok(firebaseProductService.getNewArrivals());
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching products");
+        }
+    }
+
+
     //Get product by ID
     @GetMapping("getById/{id}")
     public ResponseEntity<Object> getProductById(@PathVariable String id) {
@@ -76,4 +98,6 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting product");
         }
     }
+
+
 }
