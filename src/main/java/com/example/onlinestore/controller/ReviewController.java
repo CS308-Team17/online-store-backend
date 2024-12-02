@@ -89,7 +89,7 @@ public class ReviewController {
     }
 
     // Get reviews by product ID
-    @GetMapping("/getByProduct/{productId}")
+    @GetMapping("/getByProductId/{productId}")
     public ResponseEntity<Object> getReviewsByProductId(@PathVariable String productId) {
         try {
             return ResponseEntity.ok(firebaseReviewService.getReviewsByProductId(productId));
@@ -100,7 +100,7 @@ public class ReviewController {
     }
 
     // Get reviews by user ID
-    @GetMapping("/getByUser/{userId}")
+    @GetMapping("/getByUserId/{userId}")
     public ResponseEntity<Object> getReviewsByUserId(@PathVariable String userId) {
         try {
             return ResponseEntity.ok(firebaseReviewService.getReviewsByUserId(userId));
