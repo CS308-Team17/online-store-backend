@@ -39,10 +39,10 @@ public class WishlistController {
             return ResponseEntity.badRequest().body("Error adding item to wishlist" + e.getMessage());
         }
     }
-    @DeleteMapping("/remove/{itemId}")
-    public ResponseEntity<Object> removeFromWishlist(@PathVariable String itemId) throws ExecutionException, InterruptedException {
+    @DeleteMapping("/remove/{wishlistId}")
+    public ResponseEntity<Object> removeFromWishlist(@PathVariable String wishlistId) throws ExecutionException, InterruptedException {
         try {
-            wishlistService.removeFromWishlist(itemId);
+            wishlistService.removeFromWishlist(wishlistId);
             return ResponseEntity.ok("Item removed from wishlist");
         } catch (IllegalArgumentException e) {
             e.printStackTrace();

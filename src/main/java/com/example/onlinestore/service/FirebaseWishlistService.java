@@ -94,12 +94,12 @@ public class FirebaseWishlistService {
     /**
      * Remove an item from the user's wishlist by item ID.
      *
-     * @param itemId ID of the item to remove.
+     * @param wishlistId ID of the wishlist to remove.
      * @throws ExecutionException   If an error occurs during Firestore call.
      * @throws InterruptedException If the thread is interrupted during Firestore call.
      */
-    public void removeFromWishlist(String itemId) throws ExecutionException, InterruptedException {
-        DocumentReference docRef = firestore.collection(COLLECTION_NAME).document(itemId);
+    public void removeFromWishlist(String wishlistId) throws ExecutionException, InterruptedException {
+        DocumentReference docRef = firestore.collection(COLLECTION_NAME).document(wishlistId);
         ApiFuture<DocumentSnapshot> future = docRef.get();
         DocumentSnapshot document = future.get();
 
@@ -107,7 +107,7 @@ public class FirebaseWishlistService {
             Wishlist wishlist = document.toObject(Wishlist.class);
 
             // Remove the item from Firestore
-            firestore.collection(COLLECTION_NAME).document(itemId).delete().get();
+            firestore.collection(COLLECTION_NAME).document(wishlistId).delete().get();
 
             // Decrement the wishlist count for the product
             firebaseProductService.decrementWishlistCount(wishlist.getProductId());
