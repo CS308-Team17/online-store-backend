@@ -125,7 +125,7 @@ public class FirebaseWishlistService {
      * @throws ExecutionException   If an error occurs during Firestore call.
      * @throws InterruptedException If the thread is interrupted during Firestore call.
      */
-    private boolean isItemInWishlist(String userId, String itemId) throws ExecutionException, InterruptedException {
+    public boolean isItemInWishlist(String userId, String itemId) throws ExecutionException, InterruptedException {
         ApiFuture<QuerySnapshot> query = firestore.collection(COLLECTION_NAME)
                 .whereEqualTo("userId", userId)
                 .whereEqualTo("productId", itemId)
