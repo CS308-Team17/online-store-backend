@@ -69,7 +69,7 @@ public class FirebaseUserServiceTest {
 
             String result = firebaseUserService.saveUser(user);
 
-            assertEquals("User added successfully with ID: 123", result);
+            assertEquals("123", result);
             verify(documentReference).set(user);
         }
     }
