@@ -68,7 +68,7 @@ public class FirebaseProductService {
         docRef.set(product).get();
         return "Product added successfully with ID: " + product.getProductId();
     }
-
+    
     public String deleteProductById(String id) throws ExecutionException, InterruptedException {
         Firestore dbFirestore = FirestoreClient.getFirestore();
         dbFirestore.collection(COLLECTION_NAME).document(id).delete().get();
@@ -108,5 +108,15 @@ public class FirebaseProductService {
             products.add(document.toObject(Product.class));
         }
         return products;
+    }
+
+    public void incrementWishlistCount(String productId) {
+        Firestore dbFirestore = FirestoreClient.getFirestore();
+        dbFirestore.collection(COLLECTION_NAME).document(productId).update("numOfWishlists", com.google.cloud.firestore.FieldValue.increment(1));
+    }
+
+    public void decrementWishlistCount(String productId) {
+        Firestore dbFirestore = FirestoreClient.getFirestore();
+        dbFirestore.collection(COLLECTION_NAME).document(productId).update("numOfWishlists", com.google.cloud.firestore.FieldValue.increment(-1));
     }
 }
