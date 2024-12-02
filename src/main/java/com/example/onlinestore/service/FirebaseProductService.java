@@ -119,4 +119,36 @@ public class FirebaseProductService {
         Firestore dbFirestore = FirestoreClient.getFirestore();
         dbFirestore.collection(COLLECTION_NAME).document(productId).update("numOfWishlists", com.google.cloud.firestore.FieldValue.increment(-1));
     }
+
+    public List<Product> getMostWishlistedProducts() throws ExecutionException, InterruptedException{
+        try {
+            Firestore dbFirestore = FirestoreClient.getFirestore();
+            ApiFuture<QuerySnapshot> future = dbFirestore.collection(COLLECTION_NAME).orderBy("numOfWishlists", com.google.cloud.firestore.Query.Direction.DESCENDING).limit(8).get();
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+            List<Product> products = new ArrayList<>();
+            for (QueryDocumentSnapshot document : documents) {
+                products.add(document.toObject(Product.class));
+            }
+            return products;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to fetch most wishlisted products: " + e.getMessage());
+        }
+    }
+
+    public List<Product> getNewArrivals() throws ExecutionException, InterruptedException {
+        try {
+            Firestore dbFirestore = FirestoreClient.getFirestore();
+            ApiFuture<QuerySnapshot> future = dbFirestore.collection(COLLECTION_NAME).orderBy("publicationDate", com.google.cloud.firestore.Query.Direction.DESCENDING).limit(8).get();
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+            List<Product> products = new ArrayList<>();
+            for (QueryDocumentSnapshot document : documents) {
+                products.add(document.toObject(Product.class));
+            }
+            return products;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to fetch new arrivals: " + e.getMessage());
+        }
+    }
 }
