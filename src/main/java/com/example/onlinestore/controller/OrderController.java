@@ -1,5 +1,6 @@
 package com.example.onlinestore.controller;
 import com.example.onlinestore.entity.OrderDetails;
+import com.example.onlinestore.entity.RefundRequest;
 import com.example.onlinestore.payload.OrderStatusPayload;
 import com.example.onlinestore.service.FirebaseOrderService;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +41,45 @@ public class OrderController {
     @PutMapping("/updateStatus")
     public String updateOrderStatus(@RequestBody OrderStatusPayload orderStatusPayload) {
         return firebaseOrderService.updateOrderStatus(orderStatusPayload.getOrderId(), orderStatusPayload.getOrderStatus());
+    }
+
+    @DeleteMapping("/cancel/{orderId}")
+    public ResponseEntity<String> cancelOrder(@PathVariable String orderId) {
+        boolean isCancelled = firebaseOrderService.cancelOrder(orderId);
+        if (isCancelled) {
+            return ResponseEntity.ok("Order cancelled successfully");
+        } else {
+            return ResponseEntity.status(404).body("Order not found");
+        }
+    }
+
+    @PostMapping("/requestRefund")
+    public ResponseEntity<String> requestRefund(@RequestBody RefundRequest refundRequest) {
+        boolean isRequested = firebaseOrderService.requestRefund(refundRequest);
+        if (isRequested) {
+            return ResponseEntity.ok("Refund request submitted successfully");
+        } else {
+            return ResponseEntity.status(500).body("Failed to submit refund request");
+        }
+    }
+
+    @GetMapping("/refundRequests")
+    public List<RefundRequest> getAllRefundRequests() {
+        return firebaseOrderService.getAllRefundRequests();
+    }
+
+    @PutMapping("/updateRefundStatus")
+    public ResponseEntity<String> updateRefundStatus(@RequestBody RefundRequest refundRequest) {
+        try {
+            boolean isUpdated = firebaseOrderService.updateRefundStatus(refundRequest.getRefundRequestId(), refundRequest.getStatus());
+            if (isUpdated) {
+                return ResponseEntity.ok("Refund status updated successfully");
+            } else {
+                return ResponseEntity.status(500).body("Failed to update refund status");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Failed to update refund status: " + e.getMessage());
+        }
     }
 
 }

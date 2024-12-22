@@ -1,29 +1,35 @@
 package com.example.onlinestore.service;
 
 import com.example.onlinestore.Utils.TimeUtils;
-import com.example.onlinestore.entity.OrderDetails;
-import com.example.onlinestore.entity.OrderProduct;
-import com.example.onlinestore.entity.Seller;
+import com.example.onlinestore.entity.*;
 import com.example.onlinestore.enums.OrderStatus;
+import com.example.onlinestore.enums.RefundStatus;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
+import org.checkerframework.checker.units.qual.A;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 @Service
 public class FirebaseOrderService {
     private final FirebaseProductService firebaseProductService;
     private final InvoiceService invoiceService;
 
-    public FirebaseOrderService(FirebaseProductService firebaseProductService, InvoiceService invoiceService) {
+    @Autowired
+    private final FirebaseUserService firebaseUserService;
+
+    @Autowired
+    private EmailService emailService;
+
+    public FirebaseOrderService(FirebaseProductService firebaseProductService, InvoiceService invoiceService, FirebaseUserService firebaseUserService) {
         this.firebaseProductService = firebaseProductService;
         this.invoiceService = invoiceService;
+        this.firebaseUserService = firebaseUserService;
     }
 
     public ResponseEntity<String> createOrder(OrderDetails orderDetails) {
@@ -120,6 +126,81 @@ public class FirebaseOrderService {
             }
         } catch (Exception e) {
             throw new RuntimeException("Failed to update order status: " + e.getMessage());
+        }
+    }
+
+    public boolean cancelOrder(String orderId) {
+        try {
+            Firestore db = FirestoreClient.getFirestore();
+            DocumentReference orderRef = db.collection("orders").document(orderId);
+            ApiFuture<WriteResult> writeResult = orderRef.delete();
+            writeResult.get(); // Ensure synchronous delete
+            return true;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to cancel order: " + e.getMessage());
+        }
+    }
+
+    public boolean requestRefund(RefundRequest refundRequest) {
+        try {
+            Firestore db = FirestoreClient.getFirestore();
+            String refundRequestId = UUID.randomUUID().toString();
+            refundRequest.setRefundRequestId(refundRequestId);
+            refundRequest.setStatus(RefundStatus.PENDING);
+            DocumentReference docRef = db.collection("refundRequests").document(refundRequestId);
+            docRef.set(refundRequest).get(); // Ensure synchronous write to Firestore
+            return true;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to request refund: " + e.getMessage());
+        }
+    }
+
+    public List<RefundRequest> getAllRefundRequests() {
+        try {
+            Firestore db = FirestoreClient.getFirestore();
+            CollectionReference refundRequestsCollection = db.collection("refundRequests");
+            ApiFuture<QuerySnapshot> querySnapshot = refundRequestsCollection.get();
+            return querySnapshot.get().toObjects(RefundRequest.class);
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException("Failed to retrieve refund requests: " + e.getMessage());
+        }
+    }
+
+    public boolean updateRefundStatus(String refundRequestId, RefundStatus status) {
+        try {
+            Firestore db = FirestoreClient.getFirestore();
+            DocumentReference refundRequestRef = db.collection("refundRequests").document(refundRequestId);
+            ApiFuture<DocumentSnapshot> future = refundRequestRef.get();
+            DocumentSnapshot document = future.get();
+            if (document.exists()) {
+                RefundRequest refundRequest = document.toObject(RefundRequest.class);
+                refundRequest.setStatus(status);
+                refundRequestRef.set(refundRequest).get(); // Ensure synchronous write to Firestore
+
+                if (status == RefundStatus.APPROVED) {
+                    // Send email to user
+                    String userEmail = getUserEmail(refundRequest.getUserId());
+                    String subject = "Refund Approved";
+                    String text = "Your refund request has been approved. The amount will be refunded to your account.";
+                    emailService.sendSimpleMessage(userEmail, subject, text);
+                }
+
+                return true;
+            } else {
+                throw new RuntimeException("Refund request not found");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update refund status: " + e.getMessage());
+        }
+    }
+
+    private String getUserEmail(String userId) {
+        try {
+            // Fetch user details from the user service
+            Optional<User> user = firebaseUserService.getUserById(userId);
+            return user.get().getEmail().toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to fetch user email: " + e.getMessage());
         }
     }
 }
