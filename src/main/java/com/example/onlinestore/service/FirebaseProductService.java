@@ -11,6 +11,9 @@ import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Bucket;
 import com.google.firebase.cloud.FirestoreClient;
 import com.google.firebase.cloud.StorageClient;
+import com.google.cloud.firestore.WriteResult;
+
+
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.google.cloud.storage.Acl;
@@ -151,4 +154,36 @@ public class FirebaseProductService {
             throw new RuntimeException("Failed to fetch new arrivals: " + e.getMessage());
         }
     }
+
+    public String applyDiscount(String productId, double discountRate) throws ExecutionException, InterruptedException {
+        if (discountRate < 0 || discountRate > 100) {
+            throw new IllegalArgumentException("Discount rate must be between 0 and 100");
+        }
+    
+        Product product = getProductById(productId);
+        if (product == null) {
+            throw new IllegalArgumentException("Product not found");
+        }
+    
+        double originalPrice = product.getPrice();
+        double discountedPrice = originalPrice * (1 - discountRate / 100);
+        product.setPrice(discountedPrice);
+    
+        saveProductToDatabase(product);
+    
+        return "Discount applied. New price: " + discountedPrice;
+    }
+
+    private void saveProductToDatabase(Product product) throws ExecutionException, InterruptedException {
+        Firestore dbFirestore = FirestoreClient.getFirestore();
+    
+        ApiFuture<WriteResult> writeResult = dbFirestore
+                .collection("products")
+                .document(product.getProductId()) 
+                .set(product);
+    
+        System.out.println("Update time: " + writeResult.get().getUpdateTime());
+    }
+    
+    
 }

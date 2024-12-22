@@ -62,4 +62,12 @@ public class Product {
         this.imageURL = new ArrayList<>();
         return this;
     }
+    public void applyDiscount(double discountRate) {
+        if (discountRate < 0 || discountRate > 100) {
+            throw new IllegalArgumentException("Discount rate must be between 0 and 100");
+        }
+        this.price = this.price * (1 - discountRate / 100);
+    }
+    
+    
 }
