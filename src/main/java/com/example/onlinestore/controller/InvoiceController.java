@@ -58,7 +58,6 @@ public class InvoiceController {
                 String fileName = file.getName();
                 String orderId = fileName.substring(8, fileName.length() - 4);
 
-                // Retrieve the file's creation or last modified date
                 FileTime fileTime = Files.readAttributes(file.toPath(), BasicFileAttributes.class).creationTime();
                 String fileDate = dateFormat.format(fileTime.toMillis());
 
