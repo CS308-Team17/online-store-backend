@@ -42,26 +42,38 @@ public class InvoiceController {
     }
 
     @GetMapping("/api/invoices")
-    public ResponseEntity<List<Map<String, String>>> getInvoices(@RequestParam(required = false) String date) {
+    public ResponseEntity<List<Map<String, String>>> getInvoices(
+        @RequestParam(required = false) String startDate,
+        @RequestParam(required = false) String endDate
+    ) {
         try {
             File folder = new File(INVOICE_SAVE_PATH);
             File[] files = folder.listFiles((dir, name) -> name.startsWith("Invoice_") && name.endsWith(".pdf"));
-
+    
             if (files == null || files.length == 0) {
                 return ResponseEntity.noContent().build();
             }
-
+    
             List<Map<String, String>> invoices = new ArrayList<>();
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-
+    
             for (File file : files) {
                 String fileName = file.getName();
                 String orderId = fileName.substring(8, fileName.length() - 4);
-
+    
                 FileTime fileTime = Files.readAttributes(file.toPath(), BasicFileAttributes.class).creationTime();
                 String fileDate = dateFormat.format(fileTime.toMillis());
-
-                if (date == null || date.equals(fileDate)) {
+    
+                boolean withinRange = true;
+    
+                if (startDate != null) {
+                    withinRange = withinRange && fileDate.compareTo(startDate) >= 0;
+                }
+                if (endDate != null) {
+                    withinRange = withinRange && fileDate.compareTo(endDate) <= 0;
+                }
+    
+                if (withinRange) {
                     Map<String, String> invoiceData = new HashMap<>();
                     invoiceData.put("orderId", orderId);
                     invoiceData.put("date", fileDate);
@@ -69,14 +81,15 @@ public class InvoiceController {
                     invoices.add(invoiceData);
                 }
             }
-
+    
             if (invoices.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }
-
+    
             return ResponseEntity.ok(invoices);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+    
 }
