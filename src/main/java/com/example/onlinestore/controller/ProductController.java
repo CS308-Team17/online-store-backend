@@ -27,7 +27,18 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching products");
         }
     }
-
+    // Change product price to given value
+    @PutMapping("changePrice/{id}/{price}")
+    public ResponseEntity<String> changeProductPrice(@PathVariable String id, @PathVariable double price) {
+        try {
+            String response = firebaseProductService.changeProductPrice(id, price);
+            return ResponseEntity.ok(response);
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating product price");
+        }
+    }
+    
     @GetMapping("getMostWishlisted")
     public ResponseEntity<Object> getMostWishlistedProducts() {
         try {

@@ -18,6 +18,7 @@ public class Product {
     private String description;
     private List<String> imageURL;
     private double price;
+    private double productionCost;
     private int quantityInStock;
     private String categoryId;
     private int numOfWishlists;
@@ -42,7 +43,8 @@ public class Product {
         this.name = request.getName();
         this.description = request.getDescription();
         this.quantityInStock = request.getQuantityInStock();
-        this.price = request.getPrice();
+        this.productionCost = request.getProductionCost();
+        this.price = 0;
         this.categoryId = request.getCategoryId();
         this.numOfWishlists = 0;
 

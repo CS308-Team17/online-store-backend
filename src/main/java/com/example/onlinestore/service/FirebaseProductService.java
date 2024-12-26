@@ -151,4 +151,15 @@ public class FirebaseProductService {
             throw new RuntimeException("Failed to fetch new arrivals: " + e.getMessage());
         }
     }
+
+    public String changeProductPrice(String id, double price) throws ExecutionException, InterruptedException{
+        try {
+            Firestore dbFirestore = FirestoreClient.getFirestore();
+            dbFirestore.collection(COLLECTION_NAME).document(id).update("price", price).get();
+            return "Product price updated successfully";
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to update product price: " + e.getMessage());
+        }
+    }
 }

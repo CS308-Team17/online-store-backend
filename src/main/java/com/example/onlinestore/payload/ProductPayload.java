@@ -16,7 +16,7 @@ public class ProductPayload {
     private String serialNumber;
     private String description;
     private int quantityInStock;
-    private double price;
+    private double productionCost;
     private String warrantyStatus;
     private String distributorInformation;
     private List<MultipartFile> images;
@@ -30,5 +30,6 @@ public class ProductPayload {
     private int numberOfPages;
     private String publicationDate;
     private String edition;
+
 
 }
