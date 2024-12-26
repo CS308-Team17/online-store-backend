@@ -38,7 +38,7 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating product price");
         }
     }
-    
+
     @GetMapping("getMostWishlisted")
     public ResponseEntity<Object> getMostWishlistedProducts() {
         try {
@@ -58,7 +58,6 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching products");
         }
     }
-
 
     //Get product by ID
     @GetMapping("getById/{id}")
