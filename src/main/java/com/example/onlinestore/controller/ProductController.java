@@ -100,4 +100,31 @@ public class ProductController {
     }
 
 
+    @PutMapping("applyDiscount/{id}")
+    public ResponseEntity<String> applyDiscount(
+            @PathVariable String id,
+            @RequestParam double discountPercentage) {
+        try {
+            String response = firebaseProductService.applyDiscount(id, discountPercentage);
+            return ResponseEntity.ok(response);
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error applying discount");
+        }
+    }
+
+
+    @PutMapping("removeDiscount/{id}")
+    public ResponseEntity<String> removeDiscount(@PathVariable String id) {
+        try {
+            String response = firebaseProductService.removeDiscount(id);
+            return ResponseEntity.ok(response);
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error removing discount");
+        }
+    }
+
+
+
 }

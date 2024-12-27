@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+
+
 @Service
 public class FirebaseProductService {
 
@@ -151,4 +153,58 @@ public class FirebaseProductService {
             throw new RuntimeException("Failed to fetch new arrivals: " + e.getMessage());
         }
     }
+
+    
+    public String applyDiscount(String id, double discountPercentage) throws ExecutionException, InterruptedException {
+        try {
+            Firestore dbFirestore = FirestoreClient.getFirestore();
+            DocumentReference productRef = dbFirestore.collection(COLLECTION_NAME).document(id);
+    
+            Product product = productRef.get().get().toObject(Product.class);
+            if (product == null) {
+                return "Product not found for ID: " + id;
+            }
+
+            if (product.getOriginalPrice() == 0) {
+                product.setOriginalPrice(product.getPrice());
+            }
+
+            double discountedPrice = product.getPrice() * (1 - (discountPercentage / 100));
+            product.setPrice(discountedPrice);
+    
+            productRef.set(product).get();
+            return "Discount of " + discountPercentage + "% applied successfully to product ID: " + id;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to apply discount: " + e.getMessage());
+        }
+    }
+    
+    public String removeDiscount(String id) throws ExecutionException, InterruptedException {
+        try {
+            Firestore dbFirestore = FirestoreClient.getFirestore();
+            DocumentReference productRef = dbFirestore.collection(COLLECTION_NAME).document(id);
+    
+            Product product = productRef.get().get().toObject(Product.class);
+            if (product == null) {
+                return "Product not found for ID: " + id;
+            }
+                if (product.getOriginalPrice() == 0) {
+                return "Original price not found. Cannot remove discount.";
+            }
+    
+            product.setPrice(product.getOriginalPrice());
+            product.setOriginalPrice(0); 
+
+            productRef.set(product).get();
+            return "Discount removed successfully from product ID: " + id;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to remove discount: " + e.getMessage());
+        }
+    }
+    
+    
+
+    
 }

@@ -36,6 +36,12 @@ public class Product {
     private String publicationDate;
     private String edition;
 
+    // Discount-related fields
+    private double discountPercentage; 
+    private Double previousPrice; 
+    private double originalPrice;
+
+
     // Method to set product details from the payload
     public Product setProduct(ProductPayload request) {
         // General product information
@@ -61,5 +67,29 @@ public class Product {
         this.edition = request.getEdition();
         this.imageURL = new ArrayList<>();
         return this;
+    }
+
+    public double getOriginalPrice() {
+        return originalPrice;
+    }
+    
+    public void setOriginalPrice(double originalPrice) {
+        this.originalPrice = originalPrice;
+    }
+
+    public void applyDiscount(double discountPercentage) {
+        if (discountPercentage > 0 && discountPercentage <= 100) {
+            this.previousPrice = this.price; 
+            this.price = this.price * (1 - discountPercentage / 100);
+            this.discountPercentage = discountPercentage;
+        }
+    }
+
+    public void removeDiscount() {
+        if (this.previousPrice != null) {
+            this.price = this.previousPrice; 
+            this.previousPrice = null;
+            this.discountPercentage = 0;
+        }
     }
 }
