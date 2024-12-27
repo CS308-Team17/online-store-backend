@@ -11,6 +11,7 @@ import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -120,6 +121,18 @@ public class FirebaseOrderService {
             }
         } catch (Exception e) {
             throw new RuntimeException("Failed to update order status: " + e.getMessage());
+        }
+    }
+
+    public List<OrderDetails> getOrderDetailsByDateRange(LocalDate startDate, LocalDate endDate) {
+        try {
+            Firestore db = FirestoreClient.getFirestore();
+            CollectionReference ordersCollection = db.collection("orders");
+            Query query = ordersCollection.whereGreaterThanOrEqualTo("orderDate", TimeUtils.getDateTimeString(startDate.atStartOfDay()))
+                    .whereLessThanOrEqualTo("orderDate", TimeUtils.getDateTimeString(endDate.atTime(23, 59, 59)));
+            return getOrderDetails(query.get(), ordersCollection);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to retrieve orders: " + e.getMessage());
         }
     }
 }
