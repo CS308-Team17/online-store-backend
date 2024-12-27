@@ -151,4 +151,31 @@ public class FirebaseProductService {
             throw new RuntimeException("Failed to fetch new arrivals: " + e.getMessage());
         }
     }
+
+    public String changeProductPrice(String id, double price) throws ExecutionException, InterruptedException{
+        try {
+            Firestore dbFirestore = FirestoreClient.getFirestore();
+            dbFirestore.collection(COLLECTION_NAME).document(id).update("price", price).get();
+            return "Product price updated successfully";
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to update product price: " + e.getMessage());
+        }
+    }
+
+    public List<Product> getPricedProducts() throws ExecutionException, InterruptedException {
+        try {
+            Firestore dbFirestore = FirestoreClient.getFirestore();
+            ApiFuture<QuerySnapshot> future = dbFirestore.collection(COLLECTION_NAME).whereGreaterThan("price", 0).get();
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+            List<Product> products = new ArrayList<>();
+            for (QueryDocumentSnapshot document : documents) {
+                products.add(document.toObject(Product.class));
+            }
+            return products;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to fetch priced products: " + e.getMessage());
+        }
+    }
 }
