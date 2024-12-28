@@ -1,50 +1,50 @@
 package com.example.onlinestore.service;
 
 import com.example.onlinestore.constants.CollectionConstants;
+import com.example.onlinestore.entity.CostDetails;
 import com.example.onlinestore.entity.OrderDetails;
-import com.example.onlinestore.entity.Product;
 import com.example.onlinestore.entity.RevenueReport;
-import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.QueryDocumentSnapshot;
-import com.google.cloud.firestore.QuerySnapshot;
 import com.google.firebase.cloud.FirestoreClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Service
 public class FirebaseRevenueService {
-    private final Firestore firestore;
-
-    public FirebaseRevenueService() {
-        this.firestore = FirestoreClient.getFirestore();
-    }
+    @Autowired
+    private FirebaseCostService firebaseCostService;
+    @Autowired
+    private FirebaseOrderService firebaseOrderService;
 
     public RevenueReport getReport(LocalDate startDate, LocalDate endDate) throws ExecutionException, InterruptedException {
-        CollectionReference orders = firestore.collection(CollectionConstants.ORDER_COLLECTION);
+        Map<String, Double> revenueByDate = getRevenueByDate(startDate, endDate);
+        Map<String, Double> costByDate = getCostByDate(startDate, endDate);
+        Map<String, Double> profitByDate = getProfitByDate(revenueByDate, costByDate);
+        return new RevenueReport(revenueByDate, costByDate, profitByDate, calculateTotal(revenueByDate), calculateTotal(costByDate), calculateTotal(profitByDate));
+    }
 
-        // Convert LocalDate to the "yyyy/MM/dd HH:mm:ss" format
-        String start = startDate.atStartOfDay().format(java.time.format.DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"));
-        String end = endDate.atTime(23, 59, 59).format(java.time.format.DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"));
+    private Map<String, Double> getRevenueByDate(LocalDate startDate, LocalDate endDate) {
+        List<OrderDetails> orders = firebaseOrderService.getOrderDetailsByDateRange(startDate, endDate);
+        return orders.stream().collect(Collectors.groupingBy(OrderDetails::getOrderDate, Collectors.summingDouble(OrderDetails::getOrderTotal)));
+    }
 
-        // Query Firestore with the formatted date strings
-        ApiFuture<QuerySnapshot> query = orders
-                .whereGreaterThanOrEqualTo("orderDate", start)
-                .whereLessThanOrEqualTo("orderDate", end)
-                .get();
+    private Map<String, Double> getCostByDate(LocalDate startDate, LocalDate endDate) {
+        List<CostDetails> costs = firebaseCostService.getCostDetailsByDateRange(startDate, endDate);
+        return costs.stream().collect(Collectors.groupingBy(CostDetails::getDate, Collectors.summingDouble(CostDetails::getTotalCost)));
+    }
 
-        List<QueryDocumentSnapshot> documents = query.get().getDocuments();
-        double totalRevenue = 0;
+    private Map<String, Double> getProfitByDate(Map<String, Double> revenueByDate, Map<String, Double> costByDate) {
+        return revenueByDate.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue() - costByDate.getOrDefault(entry.getKey(), 0.0)));
+    }
 
-        for (QueryDocumentSnapshot document : documents) {
-            double orderTotal = document.toObject(OrderDetails.class).getOrderTotal();
-            totalRevenue += orderTotal;
-        }
-
-        return new RevenueReport(totalRevenue);
+    private double calculateTotal(Map<String, Double> map) {
+        return map.values().stream().mapToDouble(Double::doubleValue).sum();
     }
 }

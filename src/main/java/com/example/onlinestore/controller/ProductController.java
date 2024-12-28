@@ -1,6 +1,7 @@
 package com.example.onlinestore.controller;
 
 import com.example.onlinestore.entity.Product;
+import com.example.onlinestore.payload.AddStockPayload;
 import com.example.onlinestore.payload.ProductPayload;
 import com.example.onlinestore.service.FirebaseProductService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,29 @@ public class ProductController {
         }
     }
 
+    // Get all products that have price other than 0
+    @GetMapping("getAllPriced")
+    public ResponseEntity<Object> getPricedProducts() {
+        try {
+            return ResponseEntity.ok(firebaseProductService.getPricedProducts());
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching products");
+        }
+    }
+
+    // Change product price to given value
+    @PutMapping("changePrice/{id}/{price}")
+    public ResponseEntity<String> changeProductPrice(@PathVariable String id, @PathVariable double price) {
+        try {
+            String response = firebaseProductService.changeProductPrice(id, price);
+            return ResponseEntity.ok(response);
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating product price");
+        }
+    }
+
     @GetMapping("getMostWishlisted")
     public ResponseEntity<Object> getMostWishlistedProducts() {
         try {
@@ -47,7 +71,6 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching products");
         }
     }
-
 
     //Get product by ID
     @GetMapping("getById/{id}")
@@ -99,7 +122,16 @@ public class ProductController {
         }
     }
 
-
+    @PostMapping("/addStock")
+    public ResponseEntity<String> addStock(@RequestBody AddStockPayload payload) {
+        try {
+            String response = firebaseProductService.increaseQuantityInStock(payload);
+            return ResponseEntity.ok(response);
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error adding stock");
+        }
+    }
     @PutMapping("applyDiscount/{id}")
     public ResponseEntity<String> applyDiscount(
             @PathVariable String id,
