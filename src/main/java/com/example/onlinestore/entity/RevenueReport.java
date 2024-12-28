@@ -4,11 +4,16 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Map;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class RevenueReport {
+    private Map<String, Double> revenueByDate;
+    private Map<String, Double> costByDate;
+    private Map<String, Double> profitByDate;
     private double totalRevenue;
-    // Todo: Discuss profit field (currently cost data unavailable)
-    // private double profit;
+    private double totalCost;
+    private double totalProfit;
 }

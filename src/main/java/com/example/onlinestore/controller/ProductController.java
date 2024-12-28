@@ -1,6 +1,7 @@
 package com.example.onlinestore.controller;
 
 import com.example.onlinestore.entity.Product;
+import com.example.onlinestore.payload.AddStockPayload;
 import com.example.onlinestore.payload.ProductPayload;
 import com.example.onlinestore.service.FirebaseProductService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -121,5 +122,14 @@ public class ProductController {
         }
     }
 
-
+    @PostMapping("/addStock")
+    public ResponseEntity<String> addStock(@RequestBody AddStockPayload payload) {
+        try {
+            String response = firebaseProductService.increaseQuantityInStock(payload);
+            return ResponseEntity.ok(response);
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error adding stock");
+        }
+    }
 }
