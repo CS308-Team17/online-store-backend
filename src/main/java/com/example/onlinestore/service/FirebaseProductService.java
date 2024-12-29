@@ -1,6 +1,7 @@
 package com.example.onlinestore.service;
 
 import com.example.onlinestore.entity.Product;
+import com.example.onlinestore.payload.AddStockPayload;
 import com.example.onlinestore.payload.ProductPayload;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentReference;
@@ -25,9 +26,11 @@ public class FirebaseProductService {
 
     private static final String COLLECTION_NAME = "products";
     private final FirebaseReviewService firebaseReviewService;
+    private final FirebaseCostService firebaseCostService;
 
-    public FirebaseProductService(FirebaseReviewService firebaseReviewService) {
+    public FirebaseProductService(FirebaseReviewService firebaseReviewService, FirebaseCostService firebaseCostService) {
         this.firebaseReviewService = firebaseReviewService;
+        this.firebaseCostService = firebaseCostService;
     }
 
 
@@ -66,6 +69,8 @@ public class FirebaseProductService {
         }
 
         docRef.set(product).get();
+        double totalCost = product.getProductionCost() * product.getQuantityInStock();
+        firebaseCostService.addCost(totalCost);
         return "Product added successfully with ID: " + product.getProductId();
     }
     
@@ -82,6 +87,7 @@ public class FirebaseProductService {
         Firestore dbFirestore = FirestoreClient.getFirestore();
         return dbFirestore.collection(COLLECTION_NAME).document(id).get().get().toObject(Product.class);
     }
+
     // Decrease quantity in stock by a given value
     public String decreaseQuantityInStock(String id, int quantity) throws ExecutionException, InterruptedException {
         Firestore dbFirestore = FirestoreClient.getFirestore();
@@ -99,18 +105,18 @@ public class FirebaseProductService {
         }
     }
 
-    public void increaseQuantityInStock(String id, int quantity) throws ExecutionException, InterruptedException {
+    // Increase quantity in stock by a given value
+    public String increaseQuantityInStock(AddStockPayload payload) throws ExecutionException, InterruptedException {
+        String id = payload.getProductId();
         Firestore dbFirestore = FirestoreClient.getFirestore();
         Product product = dbFirestore.collection(COLLECTION_NAME).document(id).get().get().toObject(Product.class);
         if (product != null) {
-            int newQuantity = product.getQuantityInStock() + quantity;
-            if (newQuantity >= 0) {
-                dbFirestore.collection(COLLECTION_NAME).document(id).update("quantityInStock", newQuantity).get();
-            } else {
-                throw new RuntimeException("Not enough quantity in stock");
-            }
+            int newQuantity = product.getQuantityInStock() + payload.getQuantity();
+            dbFirestore.collection(COLLECTION_NAME).document(id).update("quantityInStock", newQuantity).get();
+            firebaseCostService.addCost(product.getProductionCost() * payload.getQuantity());
+            return "Quantity in stock increased successfully";
         } else {
-            throw new RuntimeException("Product not found");
+            return "Product with id " + id + " not found";
         }
     }
 
@@ -164,6 +170,33 @@ public class FirebaseProductService {
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Failed to fetch new arrivals: " + e.getMessage());
+        }
+    }
+
+    public String changeProductPrice(String id, double price) throws ExecutionException, InterruptedException{
+        try {
+            Firestore dbFirestore = FirestoreClient.getFirestore();
+            dbFirestore.collection(COLLECTION_NAME).document(id).update("price", price).get();
+            return "Product price updated successfully";
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to update product price: " + e.getMessage());
+        }
+    }
+
+    public List<Product> getPricedProducts() throws ExecutionException, InterruptedException {
+        try {
+            Firestore dbFirestore = FirestoreClient.getFirestore();
+            ApiFuture<QuerySnapshot> future = dbFirestore.collection(COLLECTION_NAME).whereGreaterThan("price", 0).get();
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+            List<Product> products = new ArrayList<>();
+            for (QueryDocumentSnapshot document : documents) {
+                products.add(document.toObject(Product.class));
+            }
+            return products;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to fetch priced products: " + e.getMessage());
         }
     }
 }

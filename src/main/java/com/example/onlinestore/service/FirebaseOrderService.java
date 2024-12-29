@@ -14,6 +14,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 @Service
 public class FirebaseOrderService {
@@ -224,6 +229,15 @@ public class FirebaseOrderService {
             return user.get().getEmail().toString();
         } catch (Exception e) {
             throw new RuntimeException("Failed to fetch user email: " + e.getMessage());
+    public List<OrderDetails> getOrderDetailsByDateRange(LocalDate startDate, LocalDate endDate) {
+        try {
+            Firestore db = FirestoreClient.getFirestore();
+            CollectionReference ordersCollection = db.collection("orders");
+            Query query = ordersCollection.whereGreaterThanOrEqualTo("orderDate", TimeUtils.getDateTimeString(startDate.atStartOfDay()))
+                    .whereLessThanOrEqualTo("orderDate", TimeUtils.getDateTimeString(endDate.atTime(23, 59, 59)));
+            return getOrderDetails(query.get(), ordersCollection);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to retrieve orders: " + e.getMessage());
         }
     }
 }

@@ -63,35 +63,6 @@ public class InvoiceService {
         }
     }
 
-    private Map<String, Object> fetchInvoiceData(String invoiceId) throws Exception {
-        Firestore firestore = FirestoreClient.getFirestore();
-        QuerySnapshot querySnapshot = firestore.collection(CollectionConstants.INVOICES_COLLECTION)
-                .whereEqualTo("invoiceId", invoiceId)
-                .get().get();
-
-        if (!querySnapshot.isEmpty()) {
-            return querySnapshot.getDocuments().get(0).getData();
-        } else {
-            throw new Exception("No invoice found for ID: " + invoiceId);
-        }
-    }
-
-    private Map<String, Object> fetchOrderData(String orderId) throws Exception {
-        Firestore firestore = FirestoreClient.getFirestore();
-        QuerySnapshot querySnapshot = firestore.collection(CollectionConstants.ORDER_COLLECTION)
-                .whereEqualTo("orderId", orderId)
-                .get().get();
-
-        if (!querySnapshot.isEmpty()) {
-            return querySnapshot.getDocuments().get(0).getData();
-        } else {
-            throw new Exception("No order found for ID: " + orderId);
-        }
-    }
-    private Optional<User> fetchCustomerData(Map<String, Object> invoiceData) throws Exception {
-        String customerId = (String) invoiceData.get("customerId");
-        return firebaseUserService.getUserById(customerId);
-    }
 
     private String createPdfInvoice(OrderDetails orderDetails) throws IOException {
         System.out.println("[DEBUG] Starting PDF generation for Invoice ID: " + orderDetails.getOrderId());
