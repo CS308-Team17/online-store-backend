@@ -4,6 +4,7 @@ import com.example.onlinestore.Utils.TimeUtils;
 import com.example.onlinestore.entity.*;
 import com.example.onlinestore.enums.OrderStatus;
 import com.example.onlinestore.enums.RefundStatus;
+import com.example.onlinestore.payload.AddStockPayload;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
@@ -190,8 +191,13 @@ public class FirebaseOrderService {
                             .findFirst()
                             .orElseThrow(() -> new RuntimeException("Product not found in order"));
 
+                    // Create AddStockPayload
+                    AddStockPayload payload = new AddStockPayload();
+                    payload.setProductId(refundRequest.getProductId());
+                    payload.setQuantity(orderProduct.getQuantity());
+
                     // Increase the stock of the product by the quantity in the order
-                    firebaseProductService.increaseQuantityInStock(refundRequest.getProductId(), orderProduct.getQuantity());
+                    firebaseProductService.increaseQuantityInStock(payload);
 
                     String userEmail = getUserEmail(refundRequest.getUserId());
                     String subject = "Refund Request Approved";
@@ -229,6 +235,8 @@ public class FirebaseOrderService {
             return user.get().getEmail().toString();
         } catch (Exception e) {
             throw new RuntimeException("Failed to fetch user email: " + e.getMessage());
+        }
+    }
     public List<OrderDetails> getOrderDetailsByDateRange(LocalDate startDate, LocalDate endDate) {
         try {
             Firestore db = FirestoreClient.getFirestore();
