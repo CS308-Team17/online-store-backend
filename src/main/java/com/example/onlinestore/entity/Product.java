@@ -38,10 +38,8 @@ public class Product {
     private String edition;
 
     // Discount-related fields
-    private double discountPercentage; 
-    private Double previousPrice; 
-    private double originalPrice;
-
+    private double discount;
+    private Double originalPrice;
 
     // Method to set product details from the payload
     public Product setProduct(ProductPayload request) {
@@ -51,6 +49,7 @@ public class Product {
         this.quantityInStock = request.getQuantityInStock();
         this.productionCost = request.getProductionCost();
         this.price = 0;
+        
         this.categoryId = request.getCategoryId();
         this.numOfWishlists = 0;
 
@@ -71,27 +70,5 @@ public class Product {
         return this;
     }
 
-    public double getOriginalPrice() {
-        return originalPrice;
-    }
-    
-    public void setOriginalPrice(double originalPrice) {
-        this.originalPrice = originalPrice;
-    }
 
-    public void applyDiscount(double discountPercentage) {
-        if (discountPercentage > 0 && discountPercentage <= 100) {
-            this.previousPrice = this.price; 
-            this.price = this.price * (1 - discountPercentage / 100);
-            this.discountPercentage = discountPercentage;
-        }
-    }
-
-    public void removeDiscount() {
-        if (this.previousPrice != null) {
-            this.price = this.previousPrice; 
-            this.previousPrice = null;
-            this.discountPercentage = 0;
-        }
-    }
 }

@@ -202,52 +202,65 @@ public class FirebaseProductService {
         }
     }
 
-    public String applyDiscount(String id, double discountPercentage) throws ExecutionException, InterruptedException {
-        try {
-            Firestore dbFirestore = FirestoreClient.getFirestore();
-            DocumentReference productRef = dbFirestore.collection(COLLECTION_NAME).document(id);
-    
-            Product product = productRef.get().get().toObject(Product.class);
-            if (product == null) {
-                return "Product not found for ID: " + id;
-            }
 
-            if (product.getOriginalPrice() == 0) {
-                product.setOriginalPrice(product.getPrice());
-            }
-
-            double discountedPrice = product.getPrice() * (1 - (discountPercentage / 100));
-            product.setPrice(discountedPrice);
-    
-            productRef.set(product).get();
-            return "Discount of " + discountPercentage + "% applied successfully to product ID: " + id;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Failed to apply discount: " + e.getMessage());
+    public String applyDiscount(String id, double discount) throws ExecutionException, InterruptedException {
+        if (discount < 0 || discount > 100) {
+            throw new IllegalArgumentException("Discount must be between 0 and 100");
         }
+        
+        Firestore dbFirestore = FirestoreClient.getFirestore();
+        DocumentReference productRef = dbFirestore.collection(COLLECTION_NAME).document(id);
+        Product product = productRef.get().get().toObject(Product.class);
+        
+        if (product == null) {
+            return "Product not found for ID: " + id;
+        }
+        
+        // If this is the first discount being applied, store the current price as original price
+        if (product.getDiscount() == 0) {
+            product.setOriginalPrice(product.getPrice());
+        }
+        
+        double newPrice = product.getPrice() * (1 - discount / 100.0);
+        product.setPrice(Math.round(newPrice * 100.0) / 100.0);
+        product.setDiscount(discount);
+        
+        productRef.set(product).get();
+        
+        return String.format("Discount applied successfully. New price: %.2f", product.getPrice());
     }
     
     public String removeDiscount(String id) throws ExecutionException, InterruptedException {
-        try {
-            Firestore dbFirestore = FirestoreClient.getFirestore();
-            DocumentReference productRef = dbFirestore.collection(COLLECTION_NAME).document(id);
-    
-            Product product = productRef.get().get().toObject(Product.class);
-            if (product == null) {
-                return "Product not found for ID: " + id;
-            }
-                if (product.getOriginalPrice() == 0) {
-                return "Original price not found. Cannot remove discount.";
-            }
-    
-            product.setPrice(product.getOriginalPrice());
-            product.setOriginalPrice(0); 
-
-            productRef.set(product).get();
-            return "Discount removed successfully from product ID: " + id;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Failed to remove discount: " + e.getMessage());
+        Firestore dbFirestore = FirestoreClient.getFirestore();
+        DocumentReference productRef = dbFirestore.collection(COLLECTION_NAME).document(id);
+        Product product = productRef.get().get().toObject(Product.class);
+        
+        if (product == null) {
+            return "Product not found for ID: " + id;
         }
+        
+        // If there's no discount or no original price, return early
+        if (product.getDiscount() == 0 || product.getOriginalPrice() == null) {
+            return "No discount to remove.";
+        }
+    
+        // Store the previous price before removing the discount
+        double previousPrice = product.getPrice();
+        
+        // Calculate one step of discount removal
+        double newPrice = previousPrice / (1 - product.getDiscount() / 100.0);
+        product.setPrice(Math.round(newPrice * 100.0) / 100.0);
+        
+        //set discount to 0 and clear originalPrice
+        if (Math.abs(newPrice - product.getOriginalPrice()) < 0.01) {
+            product.setDiscount(0);
+            product.setOriginalPrice(null);
+        }
+        
+        productRef.set(product).get();
+        
+        return String.format("Discount partially removed. New price: %.2f", product.getPrice());
     }
+    
+    
 }
