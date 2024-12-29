@@ -175,13 +175,36 @@ public class FirebaseOrderService {
             if (document.exists()) {
                 RefundRequest refundRequest = document.toObject(RefundRequest.class);
                 refundRequest.setStatus(status);
-                refundRequestRef.set(refundRequest).get(); // Ensure synchronous write to Firestore
+                refundRequestRef.set(refundRequest).get();
 
                 if (status == RefundStatus.APPROVED) {
-                    // Send email to user
+
+                    OrderDetails orderDetails = getOrderById(refundRequest.getOrderId());
+                    OrderProduct orderProduct = orderDetails.getProducts().stream()
+                            .filter(product -> product.getProductId().equals(refundRequest.getProductId()))
+                            .findFirst()
+                            .orElseThrow(() -> new RuntimeException("Product not found in order"));
+
+                    // Increase the stock of the product by the quantity in the order
+                    firebaseProductService.increaseQuantityInStock(refundRequest.getProductId(), orderProduct.getQuantity());
+
                     String userEmail = getUserEmail(refundRequest.getUserId());
-                    String subject = "Refund Approved";
-                    String text = "Your refund request has been approved. The amount will be refunded to your account.";
+                    String subject = "Refund Request Approved";
+
+                    // Create detailed email message
+                    String text = String.format(
+                            "Dear Customer,\n\n" +
+                                    "Your refund request has been approved for:\n" +
+                                    "Order ID: %s\n" +
+                                    "Product: %s\n" +
+                                    "The amount of purchase made will be refunded to your account within 3-5 business days.\n\n" +
+                                    "Thank you for shopping with us!\n" +
+                                    "Best regards,\n" +
+                                    "KitApp Team",
+                            refundRequest.getOrderId(),
+                            refundRequest.getProductName()
+                    );
+
                     emailService.sendSimpleMessage(userEmail, subject, text);
                 }
 
