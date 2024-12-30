@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+
+
 @Service
 public class FirebaseProductService {
 
@@ -198,5 +200,24 @@ public class FirebaseProductService {
             e.printStackTrace();
             throw new RuntimeException("Failed to fetch priced products: " + e.getMessage());
         }
+    }
+
+
+    public String applyDiscount(String id, double discount) throws ExecutionException, InterruptedException {
+        if (discount < 0 || discount > 100) {
+            throw new IllegalArgumentException("Discount must be between 0 and 100");
+        }
+        
+        Firestore dbFirestore = FirestoreClient.getFirestore();
+        DocumentReference productRef = dbFirestore.collection(COLLECTION_NAME).document(id);
+        Product product = productRef.get().get().toObject(Product.class);
+        
+        if (product == null) {
+            return "Product not found for ID: " + id;
+        }
+
+        product.setDiscount(discount);
+        productRef.set(product).get();
+        return String.format("Discount applied successfully. New price: %.2f", product.getPrice());
     }
 }

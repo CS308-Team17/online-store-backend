@@ -37,6 +37,9 @@ public class Product {
     private String publicationDate;
     private String edition;
 
+    // Discount-related fields
+    private double discount;
+
     // Method to set product details from the payload
     public Product setProduct(ProductPayload request) {
         // General product information
@@ -45,6 +48,7 @@ public class Product {
         this.quantityInStock = request.getQuantityInStock();
         this.productionCost = request.getProductionCost();
         this.price = 0;
+        
         this.categoryId = request.getCategoryId();
         this.numOfWishlists = 0;
 
@@ -64,4 +68,6 @@ public class Product {
         this.imageURL = new ArrayList<>();
         return this;
     }
+
+
 }

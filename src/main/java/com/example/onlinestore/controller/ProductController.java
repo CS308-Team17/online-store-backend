@@ -132,4 +132,22 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error adding stock");
         }
     }
+
+
+    @PutMapping("applyDiscount/{id}")
+    public ResponseEntity<String> applyDiscount(@PathVariable String id, @RequestParam double discount) {
+        try {
+            if (discount < 0 || discount > 100) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Discount must be between 0 and 100.");
+            }
+    
+            String response = firebaseProductService.applyDiscount(id, discount);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error applying discount");
+        }
+    }
 }
