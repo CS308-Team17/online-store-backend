@@ -39,7 +39,6 @@ public class Product {
 
     // Discount-related fields
     private double discount;
-    private Double originalPrice;
 
     // Method to set product details from the payload
     public Product setProduct(ProductPayload request) {
