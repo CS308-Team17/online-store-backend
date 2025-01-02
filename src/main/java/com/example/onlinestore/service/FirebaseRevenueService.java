@@ -1,20 +1,17 @@
 package com.example.onlinestore.service;
 
-import com.example.onlinestore.constants.CollectionConstants;
+import com.example.onlinestore.Utils.TimeUtils;
 import com.example.onlinestore.entity.CostDetails;
 import com.example.onlinestore.entity.OrderDetails;
 import com.example.onlinestore.entity.RevenueReport;
-import com.google.cloud.firestore.CollectionReference;
-import com.google.cloud.firestore.Firestore;
-import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 @Service
 public class FirebaseRevenueService {
@@ -23,28 +20,48 @@ public class FirebaseRevenueService {
     @Autowired
     private FirebaseOrderService firebaseOrderService;
 
-    public RevenueReport getReport(LocalDate startDate, LocalDate endDate) throws ExecutionException, InterruptedException {
-        Map<String, Double> revenueByDate = getRevenueByDate(startDate, endDate);
-        Map<String, Double> costByDate = getCostByDate(startDate, endDate);
-        Map<String, Double> profitByDate = getProfitByDate(revenueByDate, costByDate);
-        return new RevenueReport(revenueByDate, costByDate, profitByDate, calculateTotal(revenueByDate), calculateTotal(costByDate), calculateTotal(profitByDate));
+    public Map<String, RevenueReport> getReport(LocalDate startDate, LocalDate endDate) throws ExecutionException, InterruptedException  {
+        Map<String, RevenueReport> dailyReports = new TreeMap<>();
+
+        Map<String, Double> dailyRevenues = getDailyRevenues(startDate, endDate);
+        Map<String, Double> dailyCosts = getDailyCosts(startDate, endDate);
+
+        // Iterate over all dates between startDate and endDate (inclusive)
+        LocalDate currentDate = startDate;
+        while (!currentDate.isAfter(endDate)) {
+            String dateKey = getDate(TimeUtils.getDateTimeString(currentDate.atStartOfDay())); // Convert LocalDate to string
+
+            double revenue = dailyRevenues.getOrDefault(dateKey, 0.0);
+            double cost = dailyCosts.getOrDefault(dateKey, 0.0);
+            double profit = revenue - cost;
+            RevenueReport dailyRevenue = new RevenueReport(revenue, cost, profit);
+
+            dailyReports.put(dateKey, dailyRevenue);
+            currentDate = currentDate.plusDays(1);
+        }
+
+        return dailyReports;
     }
 
-    private Map<String, Double> getRevenueByDate(LocalDate startDate, LocalDate endDate) {
-        List<OrderDetails> orders = firebaseOrderService.getOrderDetailsByDateRange(startDate, endDate);
-        return orders.stream().collect(Collectors.groupingBy(OrderDetails::getOrderDate, Collectors.summingDouble(OrderDetails::getOrderTotal)));
+    private Map<String, Double> getDailyRevenues(LocalDate startDate, LocalDate endDate) {
+        Map<String, Double> dailyRevenues = new HashMap<>();
+        for (OrderDetails order : firebaseOrderService.getOrderDetailsByDateRange(startDate, endDate)) {
+            double totalRevenue = order.getOrderTotal();
+            dailyRevenues.put(getDate(order.getOrderDate()), dailyRevenues.getOrDefault(order.getOrderDate(), 0.0) + totalRevenue);
+        }
+        return dailyRevenues;
     }
 
-    private Map<String, Double> getCostByDate(LocalDate startDate, LocalDate endDate) {
-        List<CostDetails> costs = firebaseCostService.getCostDetailsByDateRange(startDate, endDate);
-        return costs.stream().collect(Collectors.groupingBy(CostDetails::getDate, Collectors.summingDouble(CostDetails::getTotalCost)));
+    private Map<String, Double> getDailyCosts(LocalDate startDate, LocalDate endDate) {
+        Map<String, Double> dailyCosts = new HashMap<>();
+        for (CostDetails cost : firebaseCostService.getCostDetailsByDateRange(startDate, endDate)) {
+            double totalCost = cost.getTotalCost();
+            dailyCosts.put(getDate(cost.getDate()), dailyCosts.getOrDefault(cost.getDate(), 0.0) + totalCost);
+        }
+        return dailyCosts;
     }
 
-    private Map<String, Double> getProfitByDate(Map<String, Double> revenueByDate, Map<String, Double> costByDate) {
-        return revenueByDate.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue() - costByDate.getOrDefault(entry.getKey(), 0.0)));
-    }
-
-    private double calculateTotal(Map<String, Double> map) {
-        return map.values().stream().mapToDouble(Double::doubleValue).sum();
+    private String getDate(String dateTime) {
+        return dateTime.split(" ")[0];
     }
 }

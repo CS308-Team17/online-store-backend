@@ -237,6 +237,7 @@ public class FirebaseOrderService {
             throw new RuntimeException("Failed to fetch user email: " + e.getMessage());
         }
     }
+
     public List<OrderDetails> getOrderDetailsByDateRange(LocalDate startDate, LocalDate endDate) {
         try {
             Firestore db = FirestoreClient.getFirestore();
