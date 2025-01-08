@@ -16,4 +16,5 @@ public class User {
     private String email;
     private String address;
     private UserRole role;
+    private String taxId;
 }
