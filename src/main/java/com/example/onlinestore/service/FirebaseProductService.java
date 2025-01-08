@@ -1,17 +1,17 @@
 package com.example.onlinestore.service;
 
 import com.example.onlinestore.entity.Product;
+import com.example.onlinestore.entity.User;
+import com.example.onlinestore.entity.Wishlist;
 import com.example.onlinestore.payload.AddStockPayload;
 import com.example.onlinestore.payload.ProductPayload;
 import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.DocumentReference;
-import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.QueryDocumentSnapshot;
-import com.google.cloud.firestore.QuerySnapshot;
+import com.google.cloud.firestore.*;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Bucket;
 import com.google.firebase.cloud.FirestoreClient;
 import com.google.firebase.cloud.StorageClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.google.cloud.storage.Acl;
@@ -25,6 +25,13 @@ import java.util.concurrent.ExecutionException;
 
 @Service
 public class FirebaseProductService {
+
+    @Autowired
+    EmailService emailService;
+
+    private static final String USERS_COLLECTION = "users";
+    private static final String WISHLIST_COLLECTION = "wishlists";
+
 
     private static final String COLLECTION_NAME = "products";
     private final FirebaseReviewService firebaseReviewService;
@@ -218,6 +225,68 @@ public class FirebaseProductService {
 
         product.setDiscount(discount);
         productRef.set(product).get();
+        notifyUsersOfDiscount(product);
         return String.format("Discount applied successfully. New price: %.2f", product.getPrice());
     }
+
+    /**
+     * Finds all wishlists that include the given product, retrieves the user’s email,
+     * and sends an email notification about the discount.
+     */
+    private void notifyUsersOfDiscount(Product product)
+            throws ExecutionException, InterruptedException {
+
+
+        Firestore db = FirestoreClient.getFirestore();
+
+
+        // A) Query the wishlists collection for all documents with productId == product.getProductId()
+        ApiFuture<QuerySnapshot> wishlistQuery = db.collection(WISHLIST_COLLECTION)
+                .whereEqualTo("productId", product.getProductId())
+                .get();
+        List<QueryDocumentSnapshot> wishlistDocs = wishlistQuery.get().getDocuments();
+
+
+        // B) For each matching wishlist, fetch the user and send an email
+        for (QueryDocumentSnapshot doc : wishlistDocs) {
+            Wishlist wishlist = doc.toObject(Wishlist.class);
+            if (wishlist != null) {
+                String userId = wishlist.getUserId();
+                String userEmail = fetchUserEmail(userId);
+
+
+                if (userEmail != null && !userEmail.isEmpty()) {
+                    // Construct the email
+                    String subject = "Discount on " + product.getName() + "!";
+                    String message = String.format(
+                            "Hello!\n\nThe product '%s' in your wishlist now has a discount of %.2f%%.\n"
+                                    + "Check it out in our store!\n\nBest regards,\nYour Online Store",
+                            product.getName(), product.getDiscount()
+                    );
+                    // Send the email
+                    emailService.sendSimpleMessage(userEmail, subject, message);
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Helper method to fetch the user’s email from Firestore 'users' collection.
+     */
+    private String fetchUserEmail(String userId) throws ExecutionException, InterruptedException {
+        Firestore db = FirestoreClient.getFirestore();
+        DocumentSnapshot userSnap = db.collection(USERS_COLLECTION).document(userId).get().get();
+        if (userSnap.exists()) {
+            // Adjust if your user entity or fields differ
+            User user = userSnap.toObject(User.class);
+            if (user != null) {
+                return user.getEmail();
+            }
+        }
+        return null;
+    }
+
+
+
 }
