@@ -24,7 +24,3 @@ public class OrderDetails {
     private Seller seller;
     private List<OrderProduct> products;
 }
-
-
-
-

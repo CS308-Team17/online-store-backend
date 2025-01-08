@@ -10,10 +10,7 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RevenueReport {
-    private Map<String, Double> revenueByDate;
-    private Map<String, Double> costByDate;
-    private Map<String, Double> profitByDate;
-    private double totalRevenue;
-    private double totalCost;
-    private double totalProfit;
+    private double revenue;
+    private double cost;
+    private double profit;
 }
