@@ -287,6 +287,14 @@ public class FirebaseProductService {
         return null;
     }
 
-
-
+    public String changeProductStock(String id, int quantityInStock) throws ExecutionException, InterruptedException{
+        try {
+            Firestore dbFirestore = FirestoreClient.getFirestore();
+            dbFirestore.collection(COLLECTION_NAME).document(id).update("quantityInStock", quantityInStock).get();
+            return "Product stock updated successfully";
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to update product stock: " + e.getMessage());
+        }
+    }
 }
