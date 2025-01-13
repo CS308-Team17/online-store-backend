@@ -52,6 +52,18 @@ public class ProductController {
         }
     }
 
+    // Change product stock
+    @PutMapping("changeStock/{id}/{quantityInStock}")
+    public ResponseEntity<String> changeProductStock(@PathVariable String id, @PathVariable int quantityInStock) {
+        try {
+            String response = firebaseProductService.changeProductStock(id, quantityInStock);
+            return ResponseEntity.ok(response);
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating product stock");
+        }
+    }
+
     @GetMapping("getMostWishlisted")
     public ResponseEntity<Object> getMostWishlistedProducts() {
         try {
